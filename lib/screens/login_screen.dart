@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 // App Title
                 const Text(
-                  'JUST DUCKIT',
+                  'TCG FARMS',
                   style: TextStyle(
                     fontFamily: 'Outfit',
                     fontWeight: FontWeight.w900,
@@ -128,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'The Ultimate Avian Card-Binder Registry',
+                  'The Ultimate Master Card-Binder Registry',
                   style: TextStyle(
                     color: Colors.teal.shade100.withOpacity(0.9),
                     fontSize: 14,

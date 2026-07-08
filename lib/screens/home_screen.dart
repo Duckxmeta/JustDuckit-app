@@ -646,7 +646,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'MY MASTER BINDER',
+                              'TCG FARMS',
                               style: TextStyle(
                                 fontFamily: 'Outfit',
                                 fontWeight: FontWeight.w900,
@@ -655,10 +655,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: Colors.teal.shade800,
                               ),
                             ),
-                            Text(
-                              'Avian Card Collection Registry',
+                            const Text(
+                              'My Master Binder',
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: Colors.grey,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),

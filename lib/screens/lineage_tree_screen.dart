@@ -143,6 +143,19 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_currentBirdId.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Lineage Pedigree'),
+          backgroundColor: Colors.teal,
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(
+          child: Text('Error: Invalid or Empty Bird ID targeting lineage tree.'),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lineage Pedigree'),

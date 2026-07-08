@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/bird.dart';
 import '../utils/trait_styles.dart';
+import '../services/ai_appraiser_service.dart';
 
 class AddBirdScreen extends StatefulWidget {
   const AddBirdScreen({super.key});
@@ -27,6 +28,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
   XFile? _pickedFile;
   Uint8List? _imageBytes;
   bool _isLoading = false;
+  bool _isScanning = false;
 
   final List<String> _breeds = [
     'Pekin Duck',
@@ -95,6 +97,81 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error picking image: $e')),
         );
+      }
+    }
+  }
+
+  Future<void> _smartScanImage() async {
+    if (_imageBytes == null) return;
+    setState(() {
+      _isScanning = true;
+    });
+
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    try {
+      final appraiser = AIAppraiserService();
+      final result = await appraiser.analyzeAnimalImage(_imageBytes!);
+
+      if (result.containsKey('error') && mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Smart Scan warning/info: ${result['error']}'),
+            backgroundColor: Colors.amber.shade900,
+          ),
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          if (_nameController.text.trim().isEmpty) {
+            _nameController.text = result['suggestedArchetype'] ?? '';
+          }
+          
+          final String detectedBreed = result['detectedBreed'] ?? '';
+          if (_breeds.contains(detectedBreed)) {
+            _selectedBreed = detectedBreed;
+          } else {
+            final matched = _breeds.firstWhere(
+              (b) => b.toLowerCase().contains(detectedBreed.toLowerCase()) || 
+                     detectedBreed.toLowerCase().contains(b.toLowerCase()),
+              orElse: () => 'Other',
+            );
+            _selectedBreed = matched;
+          }
+
+          final List<String> traitsList = List<String>.from(result['notableTraits'] ?? []);
+          _selectedTraits.clear();
+          for (final trait in traitsList) {
+            if (TraitStyles.traitsMap.keys.contains(trait)) {
+              _selectedTraits.add(trait);
+            }
+          }
+
+          final int ageInMonths = result['estimatedAge'] ?? 3;
+          _hatchDate = DateTime.now().subtract(Duration(days: ageInMonths * 30));
+        });
+
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text('Smart Scan complete! Form fields pre-populated.'),
+            backgroundColor: Colors.teal,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Failed to analyze image: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
       }
     }
   }
@@ -268,10 +345,35 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
               Center(
                 child: Text(
                   _imageBytes == null ? 'Upload Profile Photo' : 'Change Profile Photo',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  style: TextStyle(
+                    color: Colors.teal.shade900,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              if (_imageBytes != null) ...[
+                Center(
+                  child: OutlinedButton.icon(
+                    onPressed: _isScanning ? null : _smartScanImage,
+                    icon: _isScanning
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.teal),
+                          )
+                        : const Icon(Icons.psychology_outlined),
+                    label: Text(_isScanning ? 'Analyzing Image...' : 'Smart Scan Image'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.teal,
+                      side: const BorderSide(color: Colors.teal),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
 
               // Name Field
               TextFormField(

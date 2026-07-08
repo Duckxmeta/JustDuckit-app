@@ -206,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
                                           letterSpacing: 1.0,
-                                          shadows: [Shadow(color: Colors.black50, blurRadius: 4, offset: Offset(1, 1))],
+                                          shadows: [Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(1, 1))],
                                         ),
                                       ),
                                       Text(
@@ -575,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           label: Text(trait, style: const TextStyle(fontSize: 12)),
                           backgroundColor: Colors.grey[100],
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          avatar: const Icon(Icons.dna, size: 14, color: Colors.teal),
+                          avatar: const Icon(Icons.science, size: 14, color: Colors.teal),
                         );
                       }).toList(),
                     ),
@@ -726,7 +726,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: const Icon(Icons.sort_outlined, size: 20, color: Colors.teal),
                           ),
-                          onPressed: () {},
                           onSelected: (value) {
                             setState(() {
                               _sortBy = value;

@@ -101,6 +101,7 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
                   sex: isSire ? 'Male' : 'Female',
                   originType: 'Hatched',
                   uid: user?.uid ?? 'anonymous',
+                  ownerId: user?.uid ?? 'anonymous',
                 );
 
                 try {

@@ -22,9 +22,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
   String _sortBy = 'name'; // 'name' or 'age'
-  String _selectedDeck = 'All'; // 'All', 'Ducks', 'Chickens', 'Geese', 'Turkeys'
+  String _selectedDeck = 'All'; // 'All', 'Avian', 'Pets', 'Livestock', 'Aquatic'
 
-  final List<String> _decks = ['All', 'Ducks', 'Chickens', 'Geese', 'Turkeys'];
+  final List<String> _decks = ['All', 'Avian', 'Pets', 'Livestock', 'Aquatic'];
 
   @override
   void initState() {
@@ -956,14 +956,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (_selectedDeck != 'All') {
                     birdsList = birdsList.where((bird) {
                       final breedLower = bird.breed.toLowerCase();
-                      if (_selectedDeck == 'Ducks') {
-                        return breedLower.contains('duck');
-                      } else if (_selectedDeck == 'Chickens') {
-                        return breedLower.contains('chicken');
-                      } else if (_selectedDeck == 'Geese') {
-                        return breedLower.contains('goose') || breedLower.contains('geese');
-                      } else if (_selectedDeck == 'Turkeys') {
-                        return breedLower.contains('turkey');
+                      if (_selectedDeck == 'Avian') {
+                        return breedLower == 'avian' || 
+                               breedLower.contains('duck') || 
+                               breedLower.contains('chicken') || 
+                               breedLower.contains('goose') || 
+                               breedLower.contains('geese') || 
+                               breedLower.contains('turkey') || 
+                               breedLower.contains('quail');
+                      } else if (_selectedDeck == 'Pets') {
+                        return breedLower == 'pets' || 
+                               breedLower == 'pet' || 
+                               breedLower.contains('dog') || 
+                               breedLower.contains('cat') || 
+                               breedLower.contains('rabbit') || 
+                               breedLower.contains('reptile');
+                      } else if (_selectedDeck == 'Livestock') {
+                        return breedLower == 'livestock' || 
+                               breedLower.contains('pig') || 
+                               breedLower.contains('goat') || 
+                               breedLower.contains('cow') || 
+                               breedLower.contains('sheep') || 
+                               breedLower.contains('donkey');
+                      } else if (_selectedDeck == 'Aquatic') {
+                        return breedLower == 'aquatic' || 
+                               breedLower.contains('fish') || 
+                               breedLower.contains('shrimp') || 
+                               breedLower.contains('aquaponic');
                       }
                       return true;
                     }).toList();

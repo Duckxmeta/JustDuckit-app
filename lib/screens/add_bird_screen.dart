@@ -19,7 +19,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   
-  String _selectedBreed = 'Pekin Duck';
+  String _selectedBreed = 'Avian';
   String _selectedSex = 'Unknown';
   String _selectedOrigin = 'Hatched';
   DateTime _hatchDate = DateTime.now();
@@ -30,16 +30,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
   bool _isLoading = false;
   bool _isScanning = false;
 
-  final List<String> _breeds = [
-    'Pekin Duck',
-    'Muscovy Duck',
-    'Runner Duck',
-    'Khaki Campbell',
-    'Cayuga Duck',
-    'Call Duck',
-    'Swedish Blue',
-    'Other'
-  ];
+  final List<String> _breeds = ['Avian', 'Pets', 'Livestock', 'Aquatic'];
 
   final List<String> _sexes = ['Male', 'Female', 'Unknown'];
   final List<String> _origins = ['Purchased', 'Rehomed', 'Hatched'];
@@ -127,16 +118,35 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
             _nameController.text = result['suggestedArchetype'] ?? '';
           }
           
-          final String detectedBreed = result['detectedBreed'] ?? '';
-          if (_breeds.contains(detectedBreed)) {
-            _selectedBreed = detectedBreed;
+          final String detectedBreed = (result['detectedBreed'] ?? '').toLowerCase();
+          if (detectedBreed.contains('duck') || 
+              detectedBreed.contains('chicken') || 
+              detectedBreed.contains('goose') || 
+              detectedBreed.contains('geese') || 
+              detectedBreed.contains('turkey') || 
+              detectedBreed.contains('quail') ||
+              detectedBreed.contains('avian')) {
+            _selectedBreed = 'Avian';
+          } else if (detectedBreed.contains('dog') || 
+                     detectedBreed.contains('cat') || 
+                     detectedBreed.contains('rabbit') || 
+                     detectedBreed.contains('reptile') ||
+                     detectedBreed.contains('pet')) {
+            _selectedBreed = 'Pets';
+          } else if (detectedBreed.contains('pig') || 
+                     detectedBreed.contains('goat') || 
+                     detectedBreed.contains('cow') || 
+                     detectedBreed.contains('sheep') || 
+                     detectedBreed.contains('donkey') ||
+                     detectedBreed.contains('livestock')) {
+            _selectedBreed = 'Livestock';
+          } else if (detectedBreed.contains('fish') || 
+                     detectedBreed.contains('shrimp') || 
+                     detectedBreed.contains('aquaponic') ||
+                     detectedBreed.contains('aquatic')) {
+            _selectedBreed = 'Aquatic';
           } else {
-            final matched = _breeds.firstWhere(
-              (b) => b.toLowerCase().contains(detectedBreed.toLowerCase()) || 
-                     detectedBreed.toLowerCase().contains(b.toLowerCase()),
-              orElse: () => 'Other',
-            );
-            _selectedBreed = matched;
+            _selectedBreed = 'Avian';
           }
 
           final List<String> traitsList = List<String>.from(result['notableTraits'] ?? []);
@@ -215,7 +225,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('You must be signed in to add birds to your flock.'),
+          content: Text('You must be signed in to add animals to your collection.'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -267,7 +277,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Added ${newBird.name} to your flock!'),
+            content: Text('Added ${newBird.name} to your collection!'),
             backgroundColor: Colors.teal,
           ),
         );
@@ -277,7 +287,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving bird: $e'),
+            content: Text('Error saving animal: $e'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -295,7 +305,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Bird'),
+        title: const Text('Add Collection Item'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
@@ -379,14 +389,14 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: 'Name',
-                  hintText: 'e.g. Quackers',
+                  labelText: 'Animal Name',
+                  hintText: 'e.g. Barnaby',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.drive_file_rename_outline),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a name for this bird';
+                    return 'Please enter a name for this animal';
                   }
                   return null;
                 },
@@ -397,7 +407,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
               DropdownButtonFormField<String>(
                 value: _selectedBreed,
                 decoration: const InputDecoration(
-                  labelText: 'Breed',
+                  labelText: 'Category Deck',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.pets),
                 ),
@@ -564,7 +574,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
                         ),
                       )
                     : const Text(
-                        'Save Bird',
+                        'Save Animal',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
               ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/bird.dart';
+import '../services/grading_engine.dart';
 import 'new_incubation_screen.dart';
 import 'lineage_tree_screen.dart';
 import 'flock_directory_screen.dart';
@@ -256,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.grey),
                                       ),
                                       Text(
-                                        bird.flockGrade.toStringAsFixed(1),
+                                        GradingEngine.calculateGrade(bird).toStringAsFixed(1),
                                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.black87),
                                       ),
                                     ],
@@ -477,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     borderRadius: BorderRadius.circular(3),
                                   ),
                                   child: Text(
-                                    bird.flockGrade.toStringAsFixed(1),
+                                    GradingEngine.calculateGrade(bird).toStringAsFixed(1),
                                     style: const TextStyle(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w900,
@@ -587,7 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '${bird.flockGrade} / 10.0',
+                        '${GradingEngine.calculateGrade(bird)} / 10.0 (${GradingEngine.getTierLabel(GradingEngine.calculateGrade(bird))})',
                         style: TextStyle(color: Colors.teal.shade900, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -1112,7 +1113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       child: Text(
-                        bird.flockGrade.toStringAsFixed(1),
+                        GradingEngine.calculateGrade(bird).toStringAsFixed(1),
                         style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,

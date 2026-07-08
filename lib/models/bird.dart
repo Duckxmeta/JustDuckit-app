@@ -10,7 +10,8 @@ class Bird {
   final String? sireId;
   final String? damId;
   final String? photoUrl;
-  final String uid;
+  final String uid; // backward compatibility key for firebase rules
+  final String ownerId; // premium naming convention key
 
   // Collectible Gamified Features
   final String serialNumber;
@@ -29,6 +30,7 @@ class Bird {
     this.damId,
     this.photoUrl,
     required this.uid,
+    required this.ownerId,
     this.serialNumber = 'N/A',
     this.flockGrade = 8.5,
     this.geneticTraits = const [],
@@ -37,6 +39,7 @@ class Bird {
 
   factory Bird.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+    final String resolvedOwnerId = data['owner_id'] as String? ?? data['uid'] as String? ?? '';
     return Bird(
       id: doc.id,
       name: data['name'] as String? ?? '',
@@ -49,7 +52,8 @@ class Bird {
       sireId: data['sire_id'] as String?,
       damId: data['dam_id'] as String?,
       photoUrl: data['photo_url'] as String?,
-      uid: data['uid'] as String? ?? '',
+      uid: resolvedOwnerId,
+      ownerId: resolvedOwnerId,
       serialNumber: data['serial_number'] as String? ?? 'N/A',
       flockGrade: (data['flock_grade'] as num?)?.toDouble() ?? 8.5,
       geneticTraits: List<String>.from(data['genetic_traits'] as List<dynamic>? ?? []),
@@ -67,7 +71,8 @@ class Bird {
       if (sireId != null) 'sire_id': sireId,
       if (damId != null) 'dam_id': damId,
       if (photoUrl != null) 'photo_url': photoUrl,
-      'uid': uid,
+      'uid': ownerId, // writes ownerId to uid for rules verification
+      'owner_id': ownerId,
       'serial_number': serialNumber,
       'flock_grade': flockGrade,
       'genetic_traits': geneticTraits,
@@ -86,6 +91,7 @@ class Bird {
     String? damId,
     String? photoUrl,
     String? uid,
+    String? ownerId,
     String? serialNumber,
     double? flockGrade,
     List<String>? geneticTraits,
@@ -102,6 +108,7 @@ class Bird {
       damId: damId ?? this.damId,
       photoUrl: photoUrl ?? this.photoUrl,
       uid: uid ?? this.uid,
+      ownerId: ownerId ?? this.ownerId,
       serialNumber: serialNumber ?? this.serialNumber,
       flockGrade: flockGrade ?? this.flockGrade,
       geneticTraits: geneticTraits ?? this.geneticTraits,

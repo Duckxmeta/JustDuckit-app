@@ -176,6 +176,10 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         originType: _selectedOrigin,
         photoUrl: photoUrl,
         uid: user.uid,
+        serialNumber: 'Batch #${(DateTime.now().millisecondsSinceEpoch % 1000).toString().padLeft(3, '0')}',
+        flockGrade: 9.0,
+        geneticTraits: const ['Flock Pioneer'],
+        cardVariant: photoUrl != null ? 'Holo' : 'Standard',
       );
 
       await birdDocRef.set(newBird.toFirestore());

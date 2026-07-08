@@ -12,6 +12,12 @@ class Bird {
   final String? photoUrl;
   final String uid;
 
+  // Collectible Gamified Features
+  final String serialNumber;
+  final double flockGrade;
+  final List<String> geneticTraits;
+  final String cardVariant; // 'Standard', 'Holo', 'Full-Art'
+
   Bird({
     required this.id,
     required this.name,
@@ -23,6 +29,10 @@ class Bird {
     this.damId,
     this.photoUrl,
     required this.uid,
+    this.serialNumber = 'N/A',
+    this.flockGrade = 8.5,
+    this.geneticTraits = const [],
+    this.cardVariant = 'Standard',
   });
 
   factory Bird.fromFirestore(DocumentSnapshot doc) {
@@ -40,6 +50,10 @@ class Bird {
       damId: data['dam_id'] as String?,
       photoUrl: data['photo_url'] as String?,
       uid: data['uid'] as String? ?? '',
+      serialNumber: data['serial_number'] as String? ?? 'N/A',
+      flockGrade: (data['flock_grade'] as num?)?.toDouble() ?? 8.5,
+      geneticTraits: List<String>.from(data['genetic_traits'] as List<dynamic>? ?? []),
+      cardVariant: data['card_variant'] as String? ?? 'Standard',
     );
   }
 
@@ -54,6 +68,10 @@ class Bird {
       if (damId != null) 'dam_id': damId,
       if (photoUrl != null) 'photo_url': photoUrl,
       'uid': uid,
+      'serial_number': serialNumber,
+      'flock_grade': flockGrade,
+      'genetic_traits': geneticTraits,
+      'card_variant': cardVariant,
     };
   }
 
@@ -68,6 +86,10 @@ class Bird {
     String? damId,
     String? photoUrl,
     String? uid,
+    String? serialNumber,
+    double? flockGrade,
+    List<String>? geneticTraits,
+    String? cardVariant,
   }) {
     return Bird(
       id: id ?? this.id,
@@ -80,6 +102,10 @@ class Bird {
       damId: damId ?? this.damId,
       photoUrl: photoUrl ?? this.photoUrl,
       uid: uid ?? this.uid,
+      serialNumber: serialNumber ?? this.serialNumber,
+      flockGrade: flockGrade ?? this.flockGrade,
+      geneticTraits: geneticTraits ?? this.geneticTraits,
+      cardVariant: cardVariant ?? this.cardVariant,
     );
   }
 }

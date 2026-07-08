@@ -191,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.between,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
                                   child: Column(
@@ -748,7 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-            ],
+            ),
 
             // Horizontal scrolling Custom Decks Tab Selector
             SliverToBoxAdapter(

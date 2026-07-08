@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: Check if document owner matches authenticated user
+    function isOwner(resourceData) {
+      return resourceData.uid == request.auth.uid;
+    }
+
+    // Helper: Ensure the owner field is set to the authenticated user ID on writes
+    function isSettingOwnUid(requestData) {
+      return requestData.uid == request.auth.uid;
+    }
+
+    // Rules for the birds collection
+    match /birds/{birdId} {
+      allow read, delete: if isAuthenticated() && isOwner(resource.data);
+      allow create: if isAuthenticated() && isSettingOwnUid(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data) && isSettingOwnUid(request.resource.data);
+    }
+
+    // Rules for the incubation_batches collection
+    match /incubation_batches/{batchId} {
+      allow read, delete: if isAuthenticated() && isOwner(resource.data);
+      allow create: if isAuthenticated() && isSettingOwnUid(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data) && isSettingOwnUid(request.resource.data);
+    }
+
+    // Default deny rule for any other collection
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

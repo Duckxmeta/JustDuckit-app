@@ -1,0 +1,375 @@
+// lib/screens/animal_profile_screen.dart
+
+import 'package:flutter/material.dart';
+import '../models/bird.dart';
+import '../services/grading_engine.dart';
+import '../services/card_canvas_service.dart';
+import '../utils/trait_styles.dart';
+import 'lineage_tree_screen.dart';
+
+class AnimalProfileScreen extends StatefulWidget {
+  final Bird animal;
+
+  const AnimalProfileScreen({super.key, required this.animal});
+
+  @override
+  State<AnimalProfileScreen> createState() => _AnimalProfileScreenState();
+}
+
+class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
+  bool _isSharing = false;
+
+  String _calculateAgeText(DateTime birthDate) {
+    final difference = DateTime.now().difference(birthDate);
+    final days = difference.inDays;
+    if (days < 30) {
+      return '$days days';
+    }
+    final months = (days / 30).floor();
+    if (months < 12) {
+      return '$months mos';
+    }
+    final years = (months / 12).floor();
+    final remainingMonths = months % 12;
+    if (remainingMonths == 0) {
+      return '$years yrs';
+    }
+    return '$years y $remainingMonths m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final animal = widget.animal;
+    final int hash = animal.breed.hashCode;
+    final double hue = (hash.abs() % 360).toDouble();
+    final Color cardAccentColor = HSLColor.fromAHSL(1.0, hue, 0.75, 0.35).toColor();
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: Text(animal.name),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: _isSharing
+                ? const Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.share),
+                    tooltip: 'Export Trading Card',
+                    onPressed: () async {
+                      setState(() {
+                        _isSharing = true;
+                      });
+                      try {
+                        await CardCanvasService.exportAndShareCard(animal);
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isSharing = false;
+                          });
+                        }
+                      }
+                    },
+                  ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Premium Trading Card Header Box
+            Card(
+              elevation: 4,
+              shadowColor: Colors.black12,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      children: [
+                        Container(
+                          width: 110,
+                          height: 110,
+                          decoration: BoxDecoration(
+                            color: Colors.teal.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200, width: 2),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: animal.photoUrl != null && animal.photoUrl!.isNotEmpty
+                              ? Image.network(animal.photoUrl!, fit: BoxFit.cover)
+                              : const Center(child: Text('🐾', style: TextStyle(fontSize: 42))),
+                        ),
+                        Positioned(
+                          top: 6,
+                          left: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.black87, width: 1.5),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              GradingEngine.calculateGrade(animal).toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            animal.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                              fontFamily: 'Outfit',
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: cardAccentColor.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  animal.breed,
+                                  style: TextStyle(
+                                    color: cardAccentColor,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: Colors.teal.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  animal.cardVariant,
+                                  style: const TextStyle(
+                                    color: Colors.teal,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Serial: ${animal.serialNumber}',
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Age: ${_calculateAgeText(animal.ageOrHatchDate)}  |  Sex: ${animal.sex}',
+                            style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Category Details List
+            Text(
+              'Binder Collection Details',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                color: Colors.grey[800],
+                fontFamily: 'Outfit',
+              ),
+            ),
+            const SizedBox(height: 10),
+            Card(
+              elevation: 1,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.style, color: Colors.teal),
+                    title: const Text('Card Rarity Variant'),
+                    subtitle: Text(animal.cardVariant),
+                    trailing: Text(
+                      animal.cardVariant == 'Standard'
+                          ? 'Common'
+                          : animal.cardVariant == 'Holo'
+                              ? 'Rare'
+                              : 'Legendary',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: animal.cardVariant == 'Standard'
+                            ? Colors.grey
+                            : animal.cardVariant == 'Holo'
+                                ? Colors.teal
+                                : Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.qr_code, color: Colors.teal),
+                    title: const Text('Serial Production ID'),
+                    subtitle: Text(animal.serialNumber),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.verified_user, color: Colors.teal),
+                    title: const Text('Dynamic Quality Grade'),
+                    subtitle: const Text('Calculated dynamically from production history metrics'),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.teal.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${GradingEngine.calculateGrade(animal)} / 10.0 (${GradingEngine.getTierLabel(GradingEngine.calculateGrade(animal))})',
+                        style: TextStyle(
+                          color: Colors.teal.shade900,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Genetics Trait Pool Section
+            Text(
+              'Genetic Trait Pool',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                color: Colors.grey[800],
+                fontFamily: 'Outfit',
+              ),
+            ),
+            const SizedBox(height: 10),
+            Card(
+              elevation: 1,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: animal.geneticTraits.isEmpty
+                    ? const Text(
+                        'No genetic traits documented for this card yet.',
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      )
+                    : Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: animal.geneticTraits.map((trait) {
+                          final style = TraitStyles.getStyle(trait);
+                          return Chip(
+                            avatar: Icon(style.icon, size: 14, color: style.textColor),
+                            label: Text(
+                              trait,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: style.textColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            backgroundColor: style.backgroundColor,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          );
+                        }).toList(),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Bottom Navigation/Action Buttons
+            ElevatedButton.icon(
+              onPressed: _isSharing
+                  ? null
+                  : () async {
+                      setState(() {
+                        _isSharing = true;
+                      });
+                      try {
+                        await CardCanvasService.exportAndShareCard(animal);
+                      } finally {
+                        if (mounted) {
+                          setState(() {
+                            _isSharing = false;
+                          });
+                        }
+                      }
+                    },
+              icon: const Icon(Icons.share),
+              label: const Text('Share Graphic Card'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => LineageTreeScreen(startBirdId: animal.id),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.account_tree),
+              label: const Text('View Lineage Pedigree Tree'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.teal,
+                side: const BorderSide(color: Colors.teal),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

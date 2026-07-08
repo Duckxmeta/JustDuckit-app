@@ -15,7 +15,7 @@ class _NewIncubationScreenState extends State<NewIncubationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _batchNameController = TextEditingController();
   
-  String _selectedBreedKey = 'standard';
+  String _selectedBreedKey = 'standard_duck';
   DateTime _setDate = DateTime.now();
   bool _isLoading = false;
 
@@ -76,7 +76,7 @@ class _NewIncubationScreenState extends State<NewIncubationScreen> {
 
     try {
       final milestones = IncubationCalculator.calculateMilestones(_setDate, _selectedBreedKey);
-      final template = IncubationCalculator.duckTemplates[_selectedBreedKey]!;
+      final template = IncubationCalculator.speciesTemplates[_selectedBreedKey]!;
 
       // Create a reference with an auto-generated ID
       final docRef = FirebaseFirestore.instance.collection('incubation_batches').doc();
@@ -122,7 +122,7 @@ class _NewIncubationScreenState extends State<NewIncubationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final template = IncubationCalculator.duckTemplates[_selectedBreedKey]!;
+    final template = IncubationCalculator.speciesTemplates[_selectedBreedKey]!;
     final milestones = IncubationCalculator.calculateMilestones(_setDate, _selectedBreedKey);
     final lockdownDate = milestones['lockdownDate']!;
     final hatchDate = milestones['hatchDate']!;
@@ -191,11 +191,11 @@ class _NewIncubationScreenState extends State<NewIncubationScreen> {
               DropdownButtonFormField<String>(
                 value: _selectedBreedKey,
                 decoration: const InputDecoration(
-                  labelText: 'Duck Breed Type',
+                  labelText: 'Species / Breed Type',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.pets),
                 ),
-                items: IncubationCalculator.duckTemplates.entries.map((entry) {
+                items: IncubationCalculator.speciesTemplates.entries.map((entry) {
                   return DropdownMenuItem<String>(
                     value: entry.key,
                     child: Text(entry.value.breedName),
@@ -272,6 +272,49 @@ class _NewIncubationScreenState extends State<NewIncubationScreen> {
                   ),
                 ),
               ),
+              if (template.specialInstructions.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                Text(
+                  'Special Instructions',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade800,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  color: Colors.teal.withOpacity(0.02),
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.teal.withOpacity(0.15)),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: template.specialInstructions.map((instruction) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.info_outline, size: 18, color: Colors.teal),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  instruction,
+                                  style: const TextStyle(fontSize: 13, height: 1.4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 32),
 
               // Submit Button

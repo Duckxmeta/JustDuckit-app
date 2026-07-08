@@ -31,7 +31,7 @@ class TaskEngine {
     final List<GeneratedTask> tasks = [];
     final today = DateTime.now();
 
-    // 1. Check Incubation Batches for Urgent Alerts
+    // 1. Check Incubation Batches for Urgent Alerts & Species-Specific Chores
     for (final batch in batches) {
       if (_isSameDay(batch.lockdownDate, today)) {
         tasks.add(
@@ -55,6 +55,22 @@ class TaskEngine {
             icon: '🐣',
           ),
         );
+      }
+
+      // Goose egg misting & cooling routine: Days 4-26
+      if (batch.breedTemplateId == 'goose') {
+        final incubationDay = today.difference(batch.startDate).inDays + 1;
+        if (incubationDay >= 4 && incubationDay <= 26) {
+          tasks.add(
+            GeneratedTask(
+              id: 'goose_mist_${batch.id}',
+              title: 'Mist & Cool Goose Eggs (Day $incubationDay)',
+              description: 'Batch "${batch.batchName}": Lightly mist eggs with lukewarm water and let cool for 15 minutes daily to simulate the mother goose leaving the nest.',
+              category: 'General',
+              icon: '💧',
+            ),
+          );
+        }
       }
     }
 

@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/bird.dart';
+import '../utils/trait_styles.dart';
 
 class AddBirdScreen extends StatefulWidget {
   const AddBirdScreen({super.key});
@@ -21,6 +22,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
   String _selectedSex = 'Unknown';
   String _selectedOrigin = 'Hatched';
   DateTime _hatchDate = DateTime.now();
+  final List<String> _selectedTraits = [];
   
   XFile? _pickedFile;
   Uint8List? _imageBytes;
@@ -178,7 +180,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         uid: user.uid,
         serialNumber: 'Batch #${(DateTime.now().millisecondsSinceEpoch % 1000).toString().padLeft(3, '0')}',
         flockGrade: 9.0,
-        geneticTraits: const ['Flock Pioneer'],
+        geneticTraits: _selectedTraits.isEmpty ? const ['Flock Pioneer'] : List<String>.from(_selectedTraits),
         cardVariant: photoUrl != null ? 'Holo' : 'Standard',
       );
 
@@ -381,6 +383,59 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
                     });
                   }
                 },
+              ),
+              const SizedBox(height: 20),
+
+              // Trait Badges Selector
+              Text(
+                'Genetic & Physical Traits',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: TraitStyles.traitsMap.keys.map((trait) {
+                  final isSelected = _selectedTraits.contains(trait);
+                  final style = TraitStyles.getStyle(trait);
+                  return FilterChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          style.icon,
+                          size: 14,
+                          color: isSelected ? style.textColor : Colors.grey[600],
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          trait,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isSelected ? style.textColor : Colors.black87,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                    selected: isSelected,
+                    selectedColor: style.backgroundColor,
+                    checkmarkColor: style.textColor,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedTraits.add(trait);
+                        } else {
+                          _selectedTraits.remove(trait);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 32),
 

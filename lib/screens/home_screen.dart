@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/bird.dart';
 import '../services/grading_engine.dart';
+import '../utils/trait_styles.dart';
 import 'new_incubation_screen.dart';
 import 'lineage_tree_screen.dart';
 import 'flock_directory_screen.dart';
@@ -1142,22 +1143,61 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // Breed tag pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: tagBgColor,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        bird.breed,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: tagTextColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    // Breed tag pill & scrolling traits row
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: tagBgColor,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              bird.breed,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: tagTextColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          if (bird.geneticTraits.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            ...bird.geneticTraits.map((trait) {
+                              final style = TraitStyles.getStyle(trait);
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 4.0),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: style.backgroundColor,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: style.textColor.withOpacity(0.1)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(style.icon, size: 8, color: style.textColor),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        trait,
+                                        style: TextStyle(
+                                          color: style.textColor,
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
+                          ],
+                        ],
                       ),
                     ),
                     const SizedBox(height: 6),

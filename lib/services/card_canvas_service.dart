@@ -19,9 +19,19 @@ class CardCanvasService {
         mimeType: 'image/png',
       );
 
+      final double grade = GradingEngine.calculateGrade(animal);
+      final String deckType = animal.breed;
+
+      final String shareText =
+          'Check out my latest addition to my TCG Farms binder! 🦅✨\n\n'
+          'Card: ${animal.name}\n'
+          'Deck: $deckType\n'
+          'Grade: PSA ${grade.toStringAsFixed(1)}\n\n'
+          'Collect, grade, and track your own animals by creating your master binder here: https://duckxmeta.github.io';
+
       await Share.shareXFiles(
         [xFile],
-        text: 'Check out my ${animal.name} (${animal.breed}) card registry entry on TCG Farms!',
+        text: shareText,
       );
     } catch (e) {
       debugPrint('Error sharing card graphic: $e');

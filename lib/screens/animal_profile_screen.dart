@@ -7,6 +7,8 @@ import '../services/card_canvas_service.dart';
 import '../utils/trait_styles.dart';
 import 'lineage_tree_screen.dart';
 import '../widgets/storage_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/database_service.dart';
 
 class AnimalProfileScreen extends StatefulWidget {
   final Bird animal;
@@ -52,6 +54,54 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         actions: [
+          if (animal.ownerId == FirebaseAuth.instance.currentUser?.uid)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'Delete Card',
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Delete Card'),
+                    content: Text('Are you sure you want to permanently delete ${animal.name}?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  try {
+                    await DatabaseService.deleteAnimalCard(animal.id);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Permanently removed ${animal.name} from collection.'),
+                          backgroundColor: Colors.teal,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to delete card: $e'),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
+                  }
+                }
+              },
+            ),
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: _isSharing

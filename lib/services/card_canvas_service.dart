@@ -1,10 +1,8 @@
-// lib/services/card_canvas_service.dart
-
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../models/bird.dart';
 import '../services/grading_engine.dart';
 
@@ -30,19 +28,14 @@ class CardCanvasService {
     }
   }
 
-  /// Helper to download image bytes natively using dart:io.
+  /// Helper to download image bytes using Firebase Storage SDK to bypass web CORS bucket blocks.
   static Future<Uint8List?> _downloadImageBytes(String url) async {
     try {
-      final client = HttpClient();
-      final request = await client.getUrl(Uri.parse(url));
-      final response = await request.close();
-      if (response.statusCode == HttpStatus.ok) {
-        final List<int> bytesList = [];
-        await for (var data in response) {
-          bytesList.addAll(data);
-        }
-        return Uint8List.fromList(bytesList);
+      if (!url.startsWith('gs://') && !url.startsWith('https://')) {
+        return null;
       }
+      final ref = FirebaseStorage.instance.refFromURL(url);
+      return await ref.getData(10 * 1024 * 1024); // 10MB limit
     } catch (e) {
       debugPrint('Error downloading image for card canvas: $e');
     }

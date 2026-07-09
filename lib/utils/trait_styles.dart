@@ -21,16 +21,6 @@ class TraitStyles {
       textColor: Color(0xFF7B1FA2),
       icon: Icons.emoji_events_outlined,
     ),
-    'Silver Appleyard': TraitStyle(
-      backgroundColor: Color(0xFFEFEBE9), // Golden-brown
-      textColor: Color(0xFF5D4037),
-      icon: Icons.flutter_dash,
-    ),
-    'Swedish Blue': TraitStyle(
-      backgroundColor: Color(0xFFECEFF1), // Slate blue
-      textColor: Color(0xFF37474F),
-      icon: Icons.shield_outlined,
-    ),
     'High Production': TraitStyle(
       backgroundColor: Color(0xFFE8F5E9), // Emerald green
       textColor: Color(0xFF2E7D32),
@@ -40,6 +30,11 @@ class TraitStyles {
       backgroundColor: Color(0xFFFFEBEE), // Deep ruby
       textColor: Color(0xFFC62828),
       icon: Icons.star_border,
+    ),
+    'Special Needs / Rescued': TraitStyle(
+      backgroundColor: Color(0xFFFFF3E0), // Soft orange
+      textColor: Color(0xFFE65100),
+      icon: Icons.healing_outlined,
     ),
   };
 

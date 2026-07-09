@@ -22,6 +22,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
   final _crossBreedController = TextEditingController();
   
   String _selectedBreed = 'Avian';
+  String _selectedPrimaryBreed = 'Pekin';
   String _selectedSex = 'Unknown';
   String _selectedOrigin = 'Hatched';
   DateTime _hatchDate = DateTime.now();
@@ -33,6 +34,17 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
   bool _isScanning = false;
 
   final List<String> _breeds = ['Avian', 'Pets', 'Livestock', 'Aquatic'];
+  final List<String> _primaryBreeds = [
+    'Silver Appleyard',
+    'Swedish Blue',
+    'Pekin',
+    'Khaki Campbell',
+    'Cayuga',
+    'Indian Runner',
+    'Muscovy',
+    'Call Duck',
+    'Cross-Breed / Barnyard Mix'
+  ];
 
   final List<String> _sexes = ['Male', 'Female', 'Unknown'];
   final List<String> _origins = ['Purchased', 'Rehomed', 'Hatched'];
@@ -121,7 +133,6 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
             _nameController.text = result['suggestedArchetype'] ?? '';
           }
           
-          final String detectedBreed = (result['detectedBreed'] ?? '').toLowerCase();
           if (detectedBreed.contains('duck') || 
               detectedBreed.contains('chicken') || 
               detectedBreed.contains('goose') || 
@@ -150,6 +161,21 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
             _selectedBreed = 'Aquatic';
           } else {
             _selectedBreed = 'Avian';
+          }
+
+          // Match primary breed dropdown options
+          String matched = '';
+          for (final b in _primaryBreeds) {
+            if (detectedBreed.contains(b.toLowerCase()) || b.toLowerCase().contains(detectedBreed)) {
+              matched = b;
+              break;
+            }
+          }
+          if (matched.isNotEmpty) {
+            _selectedPrimaryBreed = matched;
+          } else {
+            _selectedPrimaryBreed = 'Cross-Breed / Barnyard Mix';
+            _crossBreedController.text = result['detectedBreed'] ?? '';
           }
 
           final List<String> traitsList = List<String>.from(result['notableTraits'] ?? []);
@@ -263,8 +289,10 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
       final isShowQuality = _selectedTraits.contains('Show Quality');
 
       final aiMetrics = await GradingEngine.gradeAnimal(
-        breed: _selectedBreed,
-        crossBreedDetails: _crossBreedController.text.trim(),
+        breed: _selectedPrimaryBreed,
+        crossBreedDetails: _selectedPrimaryBreed == 'Cross-Breed / Barnyard Mix'
+            ? _crossBreedController.text.trim()
+            : '',
         birthDate: _hatchDate,
         isCrested: isCrested,
         isShowQuality: isShowQuality,
@@ -274,7 +302,8 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
       final newBird = Bird(
         id: birdId,
         name: _nameController.text.trim(),
-        breed: _selectedBreed,
+        breed: _selectedPrimaryBreed,
+        category: _selectedBreed,
         ageOrHatchDate: _hatchDate,
         sex: _selectedSex,
         originType: _selectedOrigin,
@@ -426,7 +455,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Breed Dropdown
+              // Category Deck Dropdown
               DropdownButtonFormField<String>(
                 value: _selectedBreed,
                 decoration: const InputDecoration(
@@ -450,17 +479,49 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Cross Breed Details Field
-              TextFormField(
-                controller: _crossBreedController,
+              // Primary Breed Dropdown
+              DropdownButtonFormField<String>(
+                value: _selectedPrimaryBreed,
                 decoration: const InputDecoration(
-                  labelText: 'Cross-Breed Details / Variant (e.g. Khaki x Buff)',
-                  hintText: 'e.g. Pekin x Runner',
+                  labelText: 'Primary Breed',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.merge_type),
+                  prefixIcon: Icon(Icons.category),
                 ),
+                items: _primaryBreeds.map((breed) {
+                  return DropdownMenuItem(
+                    value: breed,
+                    child: Text(breed),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedPrimaryBreed = value;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 16),
+
+              // Cross Breed Lineage Details (Visible only when Cross-Breed / Barnyard Mix is selected)
+              if (_selectedPrimaryBreed == 'Cross-Breed / Barnyard Mix') ...[
+                TextFormField(
+                  controller: _crossBreedController,
+                  decoration: const InputDecoration(
+                    labelText: 'Cross-Breed Lineage Details (e.g., Khaki x Buff)',
+                    hintText: 'e.g. Khaki x Buff',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.merge_type),
+                  ),
+                  validator: (value) {
+                    if (_selectedPrimaryBreed == 'Cross-Breed / Barnyard Mix' && (value == null || value.trim().isEmpty)) {
+                      return 'Please specify cross-breed lineage details';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Sex Dropdown
               DropdownButtonFormField<String>(

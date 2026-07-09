@@ -4,6 +4,7 @@ class Bird {
   final String id;
   final String name;
   final String breed;
+  final String category; // e.g. 'Avian', 'Pets', 'Livestock', 'Aquatic'
   final DateTime ageOrHatchDate;
   final String sex;
   final String originType;
@@ -29,6 +30,7 @@ class Bird {
     required this.id,
     required this.name,
     required this.breed,
+    this.category = 'Avian',
     required this.ageOrHatchDate,
     required this.sex,
     required this.originType,
@@ -50,10 +52,12 @@ class Bird {
   factory Bird.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     final String resolvedOwnerId = data['owner_id'] as String? ?? data['uid'] as String? ?? '';
+    final String parsedBreed = data['breed'] as String? ?? '';
     return Bird(
       id: doc.id,
       name: data['name'] as String? ?? '',
-      breed: data['breed'] as String? ?? '',
+      breed: parsedBreed,
+      category: data['category'] as String? ?? (['avian', 'pets', 'livestock', 'aquatic'].contains(parsedBreed.toLowerCase()) ? parsedBreed : 'Avian'),
       ageOrHatchDate: data['age_or_hatch_date'] is Timestamp
           ? (data['age_or_hatch_date'] as Timestamp).toDate()
           : DateTime.now(),
@@ -79,6 +83,7 @@ class Bird {
     return {
       'name': name.toString(),
       'breed': breed.toString(),
+      'category': category.toString(),
       'age_or_hatch_date': Timestamp.fromDate(ageOrHatchDate),
       'sex': sex.toString(),
       'origin_type': originType.toString(),
@@ -102,6 +107,7 @@ class Bird {
     String? id,
     String? name,
     String? breed,
+    String? category,
     DateTime? ageOrHatchDate,
     String? sex,
     String? originType,
@@ -123,6 +129,7 @@ class Bird {
       id: id ?? this.id,
       name: name ?? this.name,
       breed: breed ?? this.breed,
+      category: category ?? this.category,
       ageOrHatchDate: ageOrHatchDate ?? this.ageOrHatchDate,
       sex: sex ?? this.sex,
       originType: originType ?? this.originType,

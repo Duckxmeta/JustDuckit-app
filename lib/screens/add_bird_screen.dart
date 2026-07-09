@@ -72,9 +72,9 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
     try {
       final XFile? image = await picker.pickImage(
         source: source,
-        maxWidth: 600,
-        maxHeight: 600,
-        imageQuality: 85,
+        maxWidth: 1080,
+        maxHeight: 1080,
+        imageQuality: 75,
       );
       if (image != null) {
         final bytes = await image.readAsBytes();
@@ -252,7 +252,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
           SettableMetadata(contentType: 'image/jpeg'),
         );
         
-        final snapshot = await uploadTask;
+        final snapshot = await uploadTask.timeout(const Duration(seconds: 15));
         photoUrl = await snapshot.ref.getDownloadURL();
       }
 
@@ -285,9 +285,10 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final isTimeout = e.toString().toLowerCase().contains('timeout');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving animal: $e'),
+            content: Text(isTimeout ? 'Upload failed. Please check connection.' : 'Error saving animal: $e'),
             backgroundColor: Colors.redAccent,
           ),
         );

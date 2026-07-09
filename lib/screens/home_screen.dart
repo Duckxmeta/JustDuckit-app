@@ -12,6 +12,7 @@ import 'daily_tasks_screen.dart';
 import 'animal_profile_screen.dart';
 import 'add_bird_screen.dart';
 import '../services/database_service.dart';
+import '../widgets/storage_image.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -633,11 +634,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: bird.photoUrl != null && bird.photoUrl!.isNotEmpty
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              bird.photoUrl!,
+                            child: StorageImage(
+                              photoUrl: bird.photoUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Center(child: Icon(Icons.pets, color: Colors.teal, size: 28)),
+                              errorWidget: const Center(
+                                child: Icon(Icons.pets, color: Colors.teal, size: 28),
+                              ),
                             ),
                           )
                         : const Center(

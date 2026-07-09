@@ -6,6 +6,7 @@ import '../services/grading_engine.dart';
 import '../services/card_canvas_service.dart';
 import '../utils/trait_styles.dart';
 import 'lineage_tree_screen.dart';
+import '../widgets/storage_image.dart';
 
 class AnimalProfileScreen extends StatefulWidget {
   final Bird animal;
@@ -112,7 +113,11 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
                           ),
                           clipBehavior: Clip.antiAlias,
                           child: animal.photoUrl != null && animal.photoUrl!.isNotEmpty
-                              ? Image.network(animal.photoUrl!, fit: BoxFit.cover)
+                              ? StorageImage(
+                                  photoUrl: animal.photoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorWidget: const Center(child: Text('🐾', style: TextStyle(fontSize: 42))),
+                                )
                               : const Center(child: Text('🐾', style: TextStyle(fontSize: 42))),
                         ),
                         Positioned(

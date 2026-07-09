@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/bird.dart';
 import 'add_bird_screen.dart';
 import 'lineage_tree_screen.dart';
+import '../widgets/storage_image.dart';
 
 class FlockDirectoryScreen extends StatefulWidget {
   const FlockDirectoryScreen({super.key});
@@ -260,11 +261,10 @@ class _FlockDirectoryScreenState extends State<FlockDirectoryScreen> {
                                       ),
                                       clipBehavior: Clip.antiAlias,
                                       child: bird.photoUrl != null
-                                          ? Image.network(
-                                              bird.photoUrl!,
+                                          ? StorageImage(
+                                              photoUrl: bird.photoUrl!,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) =>
-                                                  Icon(Icons.pets, size: 40, color: Colors.teal.shade300),
+                                              errorWidget: Icon(Icons.pets, size: 40, color: Colors.teal.shade300),
                                             )
                                           : Icon(Icons.pets, size: 40, color: Colors.teal.shade300),
                                     ),

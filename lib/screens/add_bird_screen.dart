@@ -275,6 +275,9 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
       await birdDocRef.set(newBird.toFirestore());
 
       if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Added ${newBird.name} to your collection!'),
@@ -288,7 +291,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         final isTimeout = e.toString().toLowerCase().contains('timeout');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(isTimeout ? 'Upload failed. Please check connection.' : 'Error saving animal: $e'),
+            content: Text(isTimeout ? 'Upload failed. Please check connection.' : 'Error saving card: $e'),
             backgroundColor: Colors.redAccent,
           ),
         );

@@ -5,6 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class DatabaseService {
   /// Securely deletes a specific animal card document from Firestore.
   static Future<void> deleteAnimalCard(String animalId) async {
-    await FirebaseFirestore.instance.collection('birds').doc(animalId).delete();
+    await FirebaseFirestore.instance.collection('animals').doc(animalId).delete();
   }
 }

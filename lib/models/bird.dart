@@ -63,20 +63,20 @@ class Bird {
 
   Map<String, dynamic> toFirestore() {
     return {
-      'name': name,
-      'breed': breed,
+      'name': name.toString(),
+      'breed': breed.toString(),
       'age_or_hatch_date': Timestamp.fromDate(ageOrHatchDate),
-      'sex': sex,
-      'origin_type': originType,
-      if (sireId != null) 'sire_id': sireId,
-      if (damId != null) 'dam_id': damId,
-      if (photoUrl != null) 'photo_url': photoUrl,
-      'uid': ownerId, // writes ownerId to uid for rules verification
-      'owner_id': ownerId,
-      'serial_number': serialNumber,
+      'sex': sex.toString(),
+      'origin_type': originType.toString(),
+      if (sireId != null) 'sire_id': sireId.toString(),
+      if (damId != null) 'dam_id': damId.toString(),
+      if (photoUrl != null) 'photo_url': photoUrl.toString(),
+      'uid': ownerId.toString(),
+      'owner_id': ownerId.toString(),
+      'serial_number': serialNumber.toString(),
       'flock_grade': flockGrade,
-      'genetic_traits': geneticTraits,
-      'card_variant': cardVariant,
+      'genetic_traits': geneticTraits.map((t) => t.toString()).toList(),
+      'card_variant': cardVariant.toString(),
     };
   }
 

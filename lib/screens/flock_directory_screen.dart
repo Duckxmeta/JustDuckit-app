@@ -64,7 +64,7 @@ class _FlockDirectoryScreenState extends State<FlockDirectoryScreen> {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('birds')
+            .collection('animals')
             .where('uid', isEqualTo: user?.uid ?? 'anonymous')
             .snapshots(),
         builder: (context, snapshot) {

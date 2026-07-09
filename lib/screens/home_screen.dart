@@ -313,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(16.0),
               sliver: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
-                    .collection('birds')
+                    .collection('animals')
                     .where('owner_id', isEqualTo: user?.uid ?? 'anonymous')
                     .snapshots(),
                 builder: (context, snapshot) {

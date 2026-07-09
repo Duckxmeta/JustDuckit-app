@@ -45,7 +45,7 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
 
           return StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
-                .collection('birds')
+                .collection('animals')
                 .where('uid', isEqualTo: user?.uid ?? 'anonymous')
                 .snapshots(),
             builder: (context, birdsSnapshot) {

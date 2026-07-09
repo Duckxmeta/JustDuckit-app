@@ -91,7 +91,7 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
                 if (!formKey.currentState!.validate()) return;
 
                 final user = FirebaseAuth.instance.currentUser;
-                final parentRef = FirebaseFirestore.instance.collection('birds').doc();
+                final parentRef = FirebaseFirestore.instance.collection('animals').doc();
                 
                 final newParent = Bird(
                   id: parentRef.id,
@@ -110,7 +110,7 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
 
                   // Update child document link
                   await FirebaseFirestore.instance
-                      .collection('birds')
+                      .collection('animals')
                       .doc(childBird.id)
                       .update({
                     isSire ? 'sire_id' : 'dam_id': parentRef.id,
@@ -171,7 +171,7 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('birds')
+            .collection('animals')
             .doc(_currentBirdId)
             .snapshots(),
         builder: (context, snapshot) {
@@ -346,7 +346,7 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
 
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
-          .collection('birds')
+          .collection('animals')
           .doc(parentId)
           .snapshots(),
       builder: (context, snapshot) {

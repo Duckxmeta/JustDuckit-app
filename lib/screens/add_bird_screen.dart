@@ -237,7 +237,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
     });
 
     try {
-      final birdDocRef = FirebaseFirestore.instance.collection('birds').doc();
+      final birdDocRef = FirebaseFirestore.instance.collection('animals').doc();
       final birdId = birdDocRef.id;
       String? photoUrl;
 

@@ -18,8 +18,8 @@ service cloud.firestore {
       return requestData.uid == request.auth.uid;
     }
 
-    // Rules for the birds collection
-    match /birds/{birdId} {
+    // Rules for the animals collection
+    match /animals/{animalId} {
       allow read, delete: if isAuthenticated() && isOwner(resource.data);
       allow create: if isAuthenticated() && isSettingOwnUid(request.resource.data);
       allow update: if isAuthenticated() && isOwner(resource.data) && isSettingOwnUid(request.resource.data);

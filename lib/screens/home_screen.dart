@@ -10,6 +10,8 @@ import 'new_incubation_screen.dart';
 import 'flock_directory_screen.dart';
 import 'daily_tasks_screen.dart';
 import 'animal_profile_screen.dart';
+import 'add_bird_screen.dart';
+import '../services/database_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -58,52 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return '$years yrs';
     }
     return '$years y $remainingMonths m';
-  }
-
-  Future<void> _bootstrapDummyBird() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final names = ['Donald', 'Daffy', 'Webby', 'Launchpad', 'Scrooge', 'Dewey'];
-    final breeds = ['Pekin Duck', 'Khaki Campbell', 'Runner Duck', 'Muscovy Duck'];
-    final sexes = ['Male', 'Female', 'Unknown'];
-    final traitPool = [
-      ['Crested', 'Dual-Lobe Bill'],
-      ['Silver Appleyard', 'High Production'],
-      ['Swedish Blue', 'Show Quality'],
-      ['High Production', 'Crested'],
-    ];
-    final variants = ['Standard', 'Holo', 'Full-Art'];
-    
-    final count = names.length;
-    final index = DateTime.now().millisecondsSinceEpoch % count;
-    final grade = ((index * 0.45 + 7.8).clamp(1.0, 10.0) * 10).round() / 10;
-    
-    final starterBird = {
-      'name': '${names[index]} (Starter)',
-      'breed': breeds[index % breeds.length],
-      'age_or_hatch_date': Timestamp.fromDate(
-        DateTime.now().subtract(Duration(days: (index + 1) * 45)),
-      ),
-      'sex': sexes[index % sexes.length],
-      'origin_type': 'Hatched',
-      'uid': user.uid,
-      'owner_id': user.uid,
-      'serial_number': 'Batch #${(index + 101).toString().padLeft(3, '0')}',
-      'flock_grade': grade,
-      'genetic_traits': traitPool[index % traitPool.length],
-      'card_variant': variants[index % variants.length],
-    };
-
-    try {
-      await FirebaseFirestore.instance.collection('birds').add(starterBird);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to bootstrap bird: $e'), backgroundColor: Colors.redAccent),
-        );
-      }
-    }
   }
 
   // Detailed animal profiles have been migrated to lib/screens/animal_profile_screen.dart
@@ -338,7 +294,6 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               sliver: SliverToBoxAdapter(
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       _selectedDeck == 'All' ? 'Binder Inventory' : '$_selectedDeck Deck Inventory',
@@ -346,14 +301,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                         color: Colors.grey[800],
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: _bootstrapDummyBird,
-                      icon: const Icon(Icons.add, size: 16),
-                      label: const Text('Add Dummy Card', style: TextStyle(fontSize: 12)),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.teal.shade700,
                       ),
                     ),
                   ],
@@ -406,19 +353,26 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 8),
                               const Text(
-                                'Click "Add Dummy Card" or navigate to the Flock Directory to start compiling your collection.',
+                                'Add some real animals to your collection to start compiling your deck binder!',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(color: Colors.grey, fontSize: 13),
                               ),
                               const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: _bootstrapDummyBird,
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const AddBirdScreen(),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.add),
+                                label: const Text('Add Animal'),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.teal,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
-                                child: const Text('Add Starter Card'),
                               ),
                             ],
                           ),
@@ -507,7 +461,62 @@ class _HomeScreenState extends State<HomeScreen> {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final bird = birdsList[index];
-                        return _buildAvianTradingCard(context, bird);
+                        return Dismissible(
+                          key: Key(bird.id),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20.0),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          confirmDismiss: (direction) async {
+                            return await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete Card'),
+                                content: Text('Are you sure you want to permanently delete ${bird.name} from your binder?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          onDismissed: (direction) async {
+                            try {
+                              await DatabaseService.deleteAnimalCard(bird.id);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Permanently removed ${bird.name} from collection.'),
+                                    backgroundColor: Colors.teal,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to delete card: $e'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: _buildAvianTradingCard(context, bird),
+                        );
                       },
                       childCount: birdsList.length,
                     ),

@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/bird.dart';
 import '../utils/trait_styles.dart';
 import '../services/ai_appraiser_service.dart';
+import '../services/grading_engine.dart';
 
 class AddBirdScreen extends StatefulWidget {
   const AddBirdScreen({super.key});
@@ -18,6 +19,7 @@ class AddBirdScreen extends StatefulWidget {
 class _AddBirdScreenState extends State<AddBirdScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _crossBreedController = TextEditingController();
   
   String _selectedBreed = 'Avian';
   String _selectedSex = 'Unknown';
@@ -38,6 +40,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _crossBreedController.dispose();
     super.dispose();
   }
 
@@ -256,6 +259,18 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         photoUrl = await snapshot.ref.getDownloadURL();
       }
 
+      final isCrested = _selectedTraits.contains('Crested');
+      final isShowQuality = _selectedTraits.contains('Show Quality');
+
+      final aiMetrics = await GradingEngine.gradeAnimal(
+        breed: _selectedBreed,
+        crossBreedDetails: _crossBreedController.text.trim(),
+        birthDate: _hatchDate,
+        isCrested: isCrested,
+        isShowQuality: isShowQuality,
+        originType: _selectedOrigin,
+      );
+
       final newBird = Bird(
         id: birdId,
         name: _nameController.text.trim(),
@@ -267,9 +282,13 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         uid: user.uid,
         ownerId: user.uid,
         serialNumber: 'Batch #${(DateTime.now().millisecondsSinceEpoch % 1000).toString().padLeft(3, '0')}',
-        flockGrade: 9.0,
+        flockGrade: (aiMetrics['psa_grade'] as num).toDouble(),
         geneticTraits: _selectedTraits.isEmpty ? const ['Flock Pioneer'] : List<String>.from(_selectedTraits),
         cardVariant: photoUrl != null ? 'Holo' : 'Standard',
+        hardiness: aiMetrics['hardiness'] as int?,
+        eggProduction: aiMetrics['egg_production'] as int?,
+        rarityTier: aiMetrics['rarity_tier'] as String?,
+        gradeNotes: aiMetrics['grade_notes'] as String?,
       );
 
       await birdDocRef.set(newBird.toFirestore());
@@ -428,6 +447,18 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
                     });
                   }
                 },
+              ),
+              const SizedBox(height: 16),
+
+              // Cross Breed Details Field
+              TextFormField(
+                controller: _crossBreedController,
+                decoration: const InputDecoration(
+                  labelText: 'Cross-Breed Details / Variant (e.g. Khaki x Buff)',
+                  hintText: 'e.g. Pekin x Runner',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.merge_type),
+                ),
               ),
               const SizedBox(height: 16),
 

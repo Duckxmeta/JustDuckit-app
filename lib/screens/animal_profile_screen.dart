@@ -375,6 +375,82 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
                       ),
               ),
             ),
+            if (animal.hardiness != null || animal.eggProduction != null || animal.rarityTier != null || animal.gradeNotes != null) ...[
+              const SizedBox(height: 24),
+              Text(
+                'AI Appraisal Statistics',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  color: Colors.grey[800],
+                  fontFamily: 'Outfit',
+                ),
+              ),
+              const SizedBox(height: 10),
+              Card(
+                elevation: 1,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (animal.rarityTier != null)
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.star, color: Colors.amber),
+                          title: const Text('Rarity Classification'),
+                          subtitle: Text(animal.rarityTier!),
+                        ),
+                      if (animal.hardiness != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Hardiness Rating: ${animal.hardiness}%',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        const SizedBox(height: 6),
+                        LinearProgressIndicator(
+                          value: animal.hardiness! / 100.0,
+                          backgroundColor: Colors.grey[200],
+                          color: Colors.orange,
+                          minHeight: 8,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                      if (animal.eggProduction != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          'Egg Production Rating: ${animal.eggProduction}%',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        const SizedBox(height: 6),
+                        LinearProgressIndicator(
+                          value: animal.eggProduction! / 100.0,
+                          backgroundColor: Colors.grey[200],
+                          color: Colors.blue,
+                          minHeight: 8,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                      if (animal.gradeNotes != null) ...[
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Appraisal Remarks:',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 12),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          animal.gradeNotes!,
+                          style: TextStyle(color: Colors.grey[800], fontStyle: FontStyle.italic, fontSize: 13),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 32),
 
             // Bottom Navigation/Action Buttons

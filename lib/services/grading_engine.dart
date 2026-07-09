@@ -1,10 +1,87 @@
 // lib/services/grading_engine.dart
 
+import 'dart:convert';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/bird.dart';
 
 class GradingEngine {
+  /// Asynchronously appraises animal traits using Gemini 1.5 Flash against standard APA standards.
+  static Future<Map<String, dynamic>> gradeAnimal({
+    required String breed,
+    required String crossBreedDetails,
+    required DateTime birthDate,
+    required bool isCrested,
+    required bool isShowQuality,
+    required String originType,
+  }) async {
+    const String apiKey = String.fromEnvironment('GEMINI_API_KEY');
+    
+    final fallbackData = {
+      'hardiness': 80,
+      'egg_production': 75,
+      'rarity_tier': isShowQuality ? 'Rare' : 'Common',
+      'psa_grade': isShowQuality ? 9.2 : 8.5,
+      'grade_notes': 'Graded using default offline matrix logic.',
+    };
+
+    if (apiKey.isEmpty) {
+      return fallbackData;
+    }
+
+    try {
+      final model = GenerativeModel(
+        model: 'gemini-1.5-flash',
+        apiKey: apiKey,
+        generationConfig: GenerationConfig(responseMimeType: 'application/json'),
+      );
+
+      final prompt = '''
+You are a world-class animal appraiser and poultry expert specializing in the American Poultry Association (APA) standards.
+Evaluate the following animal traits and calculate its TCG Farms collectible grade:
+- Category/Breed: $breed
+- Cross Breed Details: $crossBreedDetails
+- Birth/Hatch Date: ${birthDate.toIso8601String()}
+- Has Crested Trait: $isCrested
+- Is Show Quality: $isShowQuality
+- Origin Type: $originType
+
+Calculate the PSA grade (1.0 to 10.0) based on lineage purity and traits:
+- Deduct points for cross-breed genetic variance unless compensated by show quality traits.
+- High hardiness and production yield improve the collectible value.
+
+Return a JSON map containing EXACTLY the following keys:
+- "hardiness": integer (1 to 100)
+- "egg_production": integer (1 to 100)
+- "rarity_tier": string (one of "Common", "Uncommon", "Rare", "Epic", "Legendary")
+- "psa_grade": double (1.0 to 10.0)
+- "grade_notes": string (brief 1-sentence analysis explaining the score)
+''';
+
+      final response = await model.generateContent([Content.text(prompt)]);
+      final String? jsonText = response.text;
+      if (jsonText != null && jsonText.isNotEmpty) {
+        final decoded = json.decode(jsonText) as Map<String, dynamic>;
+        return {
+          'hardiness': decoded['hardiness'] as int? ?? 80,
+          'egg_production': decoded['egg_production'] as int? ?? 75,
+          'rarity_tier': decoded['rarity_tier'] as String? ?? 'Common',
+          'psa_grade': (decoded['psa_grade'] as num?)?.toDouble() ?? 8.5,
+          'grade_notes': decoded['grade_notes'] as String? ?? 'Graded successfully.',
+        };
+      }
+    } catch (e) {
+      print('AI Grading Engine Error: $e');
+    }
+
+    return fallbackData;
+  }
+
   /// Calculates a dynamic collector grade between 1.0 and 10.0 based on data metrics.
   static double calculateGrade(Bird bird) {
+    if (bird.flockGrade > 0 && bird.flockGrade != 8.5) {
+      return bird.flockGrade;
+    }
+
     // 1. Production Consistency (35% -> max 3.5 points)
     double prodScore = 2.0; // Baseline
     

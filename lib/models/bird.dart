@@ -19,6 +19,12 @@ class Bird {
   final List<String> geneticTraits;
   final String cardVariant; // 'Standard', 'Holo', 'Full-Art'
 
+  // AI Appraisal Metrics
+  final int? hardiness;
+  final int? eggProduction;
+  final String? rarityTier;
+  final String? gradeNotes;
+
   Bird({
     required this.id,
     required this.name,
@@ -35,6 +41,10 @@ class Bird {
     this.flockGrade = 8.5,
     this.geneticTraits = const [],
     this.cardVariant = 'Standard',
+    this.hardiness,
+    this.eggProduction,
+    this.rarityTier,
+    this.gradeNotes,
   });
 
   factory Bird.fromFirestore(DocumentSnapshot doc) {
@@ -58,6 +68,10 @@ class Bird {
       flockGrade: (data['flock_grade'] as num?)?.toDouble() ?? 8.5,
       geneticTraits: List<String>.from(data['genetic_traits'] as List<dynamic>? ?? []),
       cardVariant: data['card_variant'] as String? ?? 'Standard',
+      hardiness: data['hardiness'] as int?,
+      eggProduction: data['egg_production'] as int?,
+      rarityTier: data['rarity_tier'] as String?,
+      gradeNotes: data['grade_notes'] as String?,
     );
   }
 
@@ -77,6 +91,10 @@ class Bird {
       'flock_grade': flockGrade,
       'genetic_traits': geneticTraits.map((t) => t.toString()).toList(),
       'card_variant': cardVariant.toString(),
+      if (hardiness != null) 'hardiness': hardiness,
+      if (eggProduction != null) 'egg_production': eggProduction,
+      if (rarityTier != null) 'rarity_tier': rarityTier.toString(),
+      if (gradeNotes != null) 'grade_notes': gradeNotes.toString(),
     };
   }
 
@@ -96,6 +114,10 @@ class Bird {
     double? flockGrade,
     List<String>? geneticTraits,
     String? cardVariant,
+    int? hardiness,
+    int? eggProduction,
+    String? rarityTier,
+    String? gradeNotes,
   }) {
     return Bird(
       id: id ?? this.id,
@@ -113,6 +135,10 @@ class Bird {
       flockGrade: flockGrade ?? this.flockGrade,
       geneticTraits: geneticTraits ?? this.geneticTraits,
       cardVariant: cardVariant ?? this.cardVariant,
+      hardiness: hardiness ?? this.hardiness,
+      eggProduction: eggProduction ?? this.eggProduction,
+      rarityTier: rarityTier ?? this.rarityTier,
+      gradeNotes: gradeNotes ?? this.gradeNotes,
     );
   }
 }

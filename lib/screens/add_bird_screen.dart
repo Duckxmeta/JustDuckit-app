@@ -133,6 +133,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
             _nameController.text = result['suggestedArchetype'] ?? '';
           }
           
+          final String detectedBreed = (result['detectedBreed'] ?? '').toLowerCase();
           if (detectedBreed.contains('duck') || 
               detectedBreed.contains('chicken') || 
               detectedBreed.contains('goose') || 

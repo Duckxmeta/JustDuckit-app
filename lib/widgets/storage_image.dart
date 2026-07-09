@@ -45,11 +45,15 @@ class StorageImage extends StatelessWidget {
         if (snapshot.hasError || snapshot.data == null) {
           return errorWidget;
         }
-        return Image.memory(
-          snapshot.data!,
-          fit: fit,
+        return Container(
           width: width,
           height: height,
+          color: const Color(0xFF0C1013), // dark card theme background
+          child: Image.memory(
+            snapshot.data!,
+            fit: fit,
+            alignment: Alignment.topCenter,
+          ),
         );
       },
     );

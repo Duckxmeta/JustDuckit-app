@@ -148,7 +148,7 @@ class CardCanvasService {
           final double drawWidth = srcWidth * scale;
           final double drawHeight = srcHeight * scale;
           final double left = photoRect.left + (destWidth - drawWidth) / 2;
-          final double top = photoRect.top + (destHeight - drawHeight) / 2;
+          final double top = photoRect.top; // Align to topCenter
           
           canvas.drawImageRect(
             photo,

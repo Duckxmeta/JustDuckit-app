@@ -22,7 +22,23 @@ class StorageImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!photoUrl.startsWith('gs://') && !photoUrl.startsWith('https://')) {
+    if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+      return SizedBox(
+        width: width,
+        height: height,
+        child: Image.network(
+          photoUrl,
+          fit: fit,
+          width: width,
+          height: height,
+          errorBuilder: (context, error, stackTrace) {
+            return errorWidget;
+          },
+        ),
+      );
+    }
+
+    if (!photoUrl.startsWith('gs://')) {
       return errorWidget;
     }
     

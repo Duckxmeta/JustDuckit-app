@@ -65,7 +65,7 @@ class Bird {
       originType: data['origin_type'] as String? ?? '',
       sireId: data['sire_id'] as String?,
       damId: data['dam_id'] as String?,
-      photoUrl: data['photo_url'] as String?,
+      photoUrl: (doc.data() as Map<String, dynamic>?)?.containsKey('photo_url') == true ? (doc.get('photo_url') as String? ?? '') : '',
       uid: resolvedOwnerId,
       ownerId: resolvedOwnerId,
       serialNumber: data['serial_number'] as String? ?? 'N/A',

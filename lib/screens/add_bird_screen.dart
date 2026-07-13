@@ -32,6 +32,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
   Uint8List? _imageBytes;
   bool _isLoading = false;
   bool _isScanning = false;
+  String detectedBreed = '';
 
   final List<String> _breeds = ['Avian', 'Pets', 'Livestock', 'Aquatic'];
   final List<String> _primaryBreeds = [
@@ -133,7 +134,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
             _nameController.text = result['suggestedArchetype'] ?? '';
           }
           
-          final String detectedBreed = (result['detectedBreed'] ?? '').toLowerCase();
+          detectedBreed = (result['detectedBreed'] ?? '').toLowerCase();
           if (detectedBreed.contains('duck') || 
               detectedBreed.contains('chicken') || 
               detectedBreed.contains('goose') || 

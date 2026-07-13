@@ -32903,7 +32903,7 @@ aMN(a,b,c,d,e,f,g){return A.b4s(a,b,c,d,e,f,g)},
 b4s(a,b,c,d,e,f,g){var s=0,r=A.E(t.a),q,p,o,n
 var $async$aMN=A.A(function(h,i){if(h===1)return A.B(i,r)
 for(;;)switch(s){case 0:p=e?95:75
-o=f?"Rare":"Common"
+o=f?"Epic":"Rare"
 n=A.ak(["hardiness",80,"egg_production",p,"rarity_tier",o,"psa_grade",f?9.2:8.5,"grade_notes","Graded using default offline matrix logic."],t.N,t.K)
 q=n
 s=1

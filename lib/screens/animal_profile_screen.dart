@@ -286,18 +286,10 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
                     title: const Text('Card Rarity Variant'),
                     subtitle: Text(animal.cardVariant),
                     trailing: Text(
-                      animal.cardVariant == 'Standard'
-                          ? 'Common'
-                          : animal.cardVariant == 'Holo'
-                              ? 'Rare'
-                              : 'Legendary',
+                      animal.rarityTier ?? 'Common',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: animal.cardVariant == 'Standard'
-                            ? Colors.grey
-                            : animal.cardVariant == 'Holo'
-                                ? Colors.teal
-                                : Colors.deepOrange,
+                        color: _getRarityColor(animal.rarityTier),
                       ),
                     ),
                   ),
@@ -502,5 +494,20 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
         ),
       ),
     );
+  }
+
+  Color _getRarityColor(String? rarity) {
+    switch (rarity) {
+      case 'Legendary':
+        return Colors.deepOrange;
+      case 'Epic':
+        return Colors.purple;
+      case 'Rare':
+        return Colors.teal;
+      case 'Uncommon':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 }

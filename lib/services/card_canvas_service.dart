@@ -27,7 +27,7 @@ class CardCanvasService {
           'Card: ${animal.name}\n'
           'Deck: $deckType\n'
           'Grade: PSA ${grade.toStringAsFixed(1)}\n\n'
-          'Collect, grade, and track your own animals by creating your master binder here: https://duckxmeta.github.io';
+          'Collect, grade, and track your own animals by creating your master binder here: https://duckxmeta.github.io/JustDuckit-app/';
 
       await Share.shareXFiles(
         [xFile],

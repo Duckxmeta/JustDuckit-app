@@ -44,17 +44,30 @@ class CardCanvasService {
       if (!url.startsWith('gs://') && !url.startsWith('https://')) {
         return null;
       }
+      String? extractedPath;
       if (url.startsWith('gs://')) {
         final uriStr = url.substring(5);
         final slashIndex = uriStr.indexOf('/');
         if (slashIndex != -1) {
-          final extractedPath = uriStr.substring(slashIndex + 1);
-          return await FirebaseStorage.instance
-              .ref()
-              .child(extractedPath)
-              .getData(10 * 1024 * 1024);
+          extractedPath = uriStr.substring(slashIndex + 1);
+        }
+      } else if (url.contains('&token=') && url.contains('/o/')) {
+        final oIndex = url.indexOf('/o/');
+        if (oIndex != -1) {
+          final start = oIndex + 3;
+          final qIndex = url.indexOf('?', start);
+          final encodedPath = qIndex != -1 ? url.substring(start, qIndex) : url.substring(start);
+          extractedPath = Uri.decodeComponent(encodedPath);
         }
       }
+
+      if (extractedPath != null) {
+        return await FirebaseStorage.instance
+            .ref()
+            .child(extractedPath)
+            .getData(10 * 1024 * 1024);
+      }
+
       final ref = FirebaseStorage.instance.refFromURL(url);
       return await ref.getData(10 * 1024 * 1024); // 10MB limit
     } catch (e) {

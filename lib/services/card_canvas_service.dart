@@ -44,12 +44,23 @@ class CardCanvasService {
       if (!url.startsWith('gs://') && !url.startsWith('https://')) {
         return null;
       }
+      if (url.startsWith('gs://')) {
+        final uriStr = url.substring(5);
+        final slashIndex = uriStr.indexOf('/');
+        if (slashIndex != -1) {
+          final extractedPath = uriStr.substring(slashIndex + 1);
+          return await FirebaseStorage.instance
+              .ref()
+              .child(extractedPath)
+              .getData(10 * 1024 * 1024);
+        }
+      }
       final ref = FirebaseStorage.instance.refFromURL(url);
       return await ref.getData(10 * 1024 * 1024); // 10MB limit
     } catch (e) {
       debugPrint('Error downloading image for card canvas: $e');
+      return null;
     }
-    return null;
   }
 
   /// Composites raw PNG bytes of the animal's card template.

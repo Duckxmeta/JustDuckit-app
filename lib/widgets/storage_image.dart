@@ -61,6 +61,17 @@ class StorageImage extends StatelessWidget {
 
   Future<Uint8List?> _downloadBytes() async {
     try {
+      if (photoUrl.startsWith('gs://')) {
+        final uriStr = photoUrl.substring(5);
+        final slashIndex = uriStr.indexOf('/');
+        if (slashIndex != -1) {
+          final extractedPath = uriStr.substring(slashIndex + 1);
+          return await FirebaseStorage.instance
+              .ref()
+              .child(extractedPath)
+              .getData(10 * 1024 * 1024);
+        }
+      }
       final ref = FirebaseStorage.instance.refFromURL(photoUrl);
       return await ref.getData(10 * 1024 * 1024); // 10MB limit
     } catch (e) {

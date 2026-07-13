@@ -284,7 +284,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         );
         
         final snapshot = await uploadTask.timeout(const Duration(seconds: 15));
-        photoUrl = await snapshot.ref.getDownloadURL();
+        photoUrl = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
       }
 
       final isCrested = _selectedTraits.contains('Crested');

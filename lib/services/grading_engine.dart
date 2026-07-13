@@ -20,7 +20,7 @@ class GradingEngine {
     final fallbackData = {
       'hardiness': 80,
       'egg_production': isHighProduction ? 95 : 75,
-      'rarity_tier': isShowQuality ? 'Rare' : 'Common',
+      'rarity_tier': isShowQuality ? 'Epic' : 'Rare',
       'psa_grade': isShowQuality ? 9.2 : 8.5,
       'grade_notes': 'Graded using default offline matrix logic.',
     };
@@ -48,8 +48,16 @@ Evaluate the following animal traits and calculate its TCG Farms collectible gra
 - Origin Type: $originType
 
 Calculate the PSA grade (1.0 to 10.0) based on lineage purity and traits:
+- Show Quality traits and highly pure heritage lines should push the score toward a 9.0+.
+- Standard barnyard cross-breeds should maximize hybrid vigor hardiness, but their PSA score must settle into the Uncommon/Rare tiers.
 - Deduct points for cross-breed genetic variance unless compensated by show quality traits.
 - High hardiness and production yield improve the collectible value.
+
+You MUST strictly enforce this classification matrix mapping the calculated "psa_grade" to the "rarity_tier":
+- If "psa_grade" is >= 9.0, "rarity_tier" MUST be "Legendary" or "Epic".
+- If "psa_grade" is between 7.0 and 8.9, "rarity_tier" MUST be "Rare".
+- If "psa_grade" is between 4.0 and 6.9, "rarity_tier" MUST be "Uncommon".
+- If "psa_grade" is < 4.0, "rarity_tier" MUST be "Common".
 
 Return a JSON map containing EXACTLY the following keys:
 - "hardiness": integer (1 to 100)
@@ -63,11 +71,27 @@ Return a JSON map containing EXACTLY the following keys:
       final String? jsonText = response.text;
       if (jsonText != null && jsonText.isNotEmpty) {
         final decoded = json.decode(jsonText) as Map<String, dynamic>;
+        double psaGrade = (decoded['psa_grade'] as num?)?.toDouble() ?? 8.5;
+        psaGrade = psaGrade.clamp(1.0, 10.0);
+
+        String rarityTier = decoded['rarity_tier'] as String? ?? 'Common';
+        if (psaGrade >= 9.0) {
+          if (rarityTier != 'Legendary' && rarityTier != 'Epic') {
+            rarityTier = 'Epic';
+          }
+        } else if (psaGrade >= 7.0) {
+          rarityTier = 'Rare';
+        } else if (psaGrade >= 4.0) {
+          rarityTier = 'Uncommon';
+        } else {
+          rarityTier = 'Common';
+        }
+
         return {
           'hardiness': decoded['hardiness'] as int? ?? 80,
           'egg_production': decoded['egg_production'] as int? ?? (isHighProduction ? 95 : 75),
-          'rarity_tier': decoded['rarity_tier'] as String? ?? 'Common',
-          'psa_grade': (decoded['psa_grade'] as num?)?.toDouble() ?? 8.5,
+          'rarity_tier': rarityTier,
+          'psa_grade': psaGrade,
           'grade_notes': decoded['grade_notes'] as String? ?? 'Graded successfully.',
         };
       }

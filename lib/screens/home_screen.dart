@@ -728,7 +728,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              bird.breed,
+                              bird.geneticTraits.isNotEmpty ? bird.geneticTraits[0] : bird.breed,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(

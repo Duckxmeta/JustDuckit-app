@@ -216,7 +216,7 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  animal.breed,
+                                  animal.geneticTraits.isNotEmpty ? animal.geneticTraits[0] : animal.breed,
                                   style: TextStyle(
                                     color: cardAccentColor,
                                     fontSize: 11,

@@ -299,7 +299,7 @@ class _FlockDirectoryScreenState extends State<FlockDirectoryScreen> {
                                         const SizedBox(height: 3),
                                         // Breed
                                         Text(
-                                          bird.breed,
+                                          bird.geneticTraits.isNotEmpty ? bird.geneticTraits[0] : bird.breed,
                                           style: TextStyle(
                                             color: Colors.grey.shade600,
                                             fontSize: 12,

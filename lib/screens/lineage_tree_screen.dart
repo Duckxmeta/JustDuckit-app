@@ -256,7 +256,7 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              rootBird.breed,
+                              rootBird.geneticTraits.isNotEmpty ? rootBird.geneticTraits[0] : rootBird.breed,
                               style: TextStyle(
                                 color: Colors.grey.shade600,
                                 fontSize: 13,
@@ -394,7 +394,7 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    parentBird.breed,
+                    parentBird.geneticTraits.isNotEmpty ? parentBird.geneticTraits[0] : parentBird.breed,
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
                     textAlign: TextAlign.center,
                     maxLines: 1,

@@ -20,7 +20,7 @@ class CardCanvasService {
       );
 
       final double grade = GradingEngine.calculateGrade(animal);
-      final String deckType = animal.breed;
+      final String deckType = animal.geneticTraits.isNotEmpty ? animal.geneticTraits[0] : animal.breed;
 
       final String shareText =
           'Check out my latest addition to my TCG Farms binder! 🦅✨\n\n'
@@ -133,9 +133,10 @@ class CardCanvasService {
     namePainter.paint(canvas, const Offset(40, 36));
 
     // 5. Deck sub-header label
+    final String displayBreed = animal.geneticTraits.isNotEmpty ? animal.geneticTraits[0] : animal.breed;
     final deckPainter = TextPainter(
       text: TextSpan(
-        text: '${animal.breed.toUpperCase()} DECK',
+        text: '${displayBreed.toUpperCase()} DECK',
         style: TextStyle(
           color: Colors.teal.shade200,
           fontSize: 16,

@@ -362,7 +362,7 @@ class _GlobalRegistryScreenState extends State<GlobalRegistryScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        animal.breed,
+                        animal.geneticTraits.isNotEmpty ? animal.geneticTraits[0] : animal.breed,
                         style: TextStyle(
                           color: tagTextColor,
                           fontSize: 10,

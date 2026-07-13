@@ -32671,7 +32671,7 @@ f.c=v.G.URL.createObjectURL(g)
 m=f
 l=A.wy(a)
 k=a.c
-j="Check out my latest addition to my TCG Farms binder! \ud83e\udd85\u2728\n\nCard: "+h+"\nDeck: "+A.j(k)+"\nGrade: PSA "+J.b1j(l,1)+"\n\nCollect, grade, and track your own animals by creating your master binder here: https://duckxmeta.github.io"
+j="Check out my latest addition to my TCG Farms binder! \ud83e\udd85\u2728\n\nCard: "+h+"\nDeck: "+A.j(k)+"\nGrade: PSA "+J.b1j(l,1)+"\n\nCollect, grade, and track your own animals by creating your master binder here: https://duckxmeta.github.io/JustDuckit-app/"
 s=7
 return A.y(A.aND(A.b([m],t.FQ),j),$async$Bw)
 case 7:q=1

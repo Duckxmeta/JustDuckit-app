@@ -289,6 +289,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
 
       final isCrested = _selectedTraits.contains('Crested');
       final isShowQuality = _selectedTraits.contains('Show Quality');
+      final isHighProduction = _selectedTraits.contains('High Production');
 
       final aiMetrics = await GradingEngine.gradeAnimal(
         breed: _selectedPrimaryBreed,
@@ -298,6 +299,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         birthDate: _hatchDate,
         isCrested: isCrested,
         isShowQuality: isShowQuality,
+        isHighProduction: isHighProduction,
         originType: _selectedOrigin,
       );
 

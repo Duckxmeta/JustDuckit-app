@@ -12,13 +12,14 @@ class GradingEngine {
     required DateTime birthDate,
     required bool isCrested,
     required bool isShowQuality,
+    required bool isHighProduction,
     required String originType,
   }) async {
     const String apiKey = String.fromEnvironment('GEMINI_API_KEY');
     
     final fallbackData = {
       'hardiness': 80,
-      'egg_production': 75,
+      'egg_production': isHighProduction ? 95 : 75,
       'rarity_tier': isShowQuality ? 'Rare' : 'Common',
       'psa_grade': isShowQuality ? 9.2 : 8.5,
       'grade_notes': 'Graded using default offline matrix logic.',
@@ -43,6 +44,7 @@ Evaluate the following animal traits and calculate its TCG Farms collectible gra
 - Birth/Hatch Date: ${birthDate.toIso8601String()}
 - Has Crested Trait: $isCrested
 - Is Show Quality: $isShowQuality
+- Is High Production: $isHighProduction
 - Origin Type: $originType
 
 Calculate the PSA grade (1.0 to 10.0) based on lineage purity and traits:
@@ -63,7 +65,7 @@ Return a JSON map containing EXACTLY the following keys:
         final decoded = json.decode(jsonText) as Map<String, dynamic>;
         return {
           'hardiness': decoded['hardiness'] as int? ?? 80,
-          'egg_production': decoded['egg_production'] as int? ?? 75,
+          'egg_production': decoded['egg_production'] as int? ?? (isHighProduction ? 95 : 75),
           'rarity_tier': decoded['rarity_tier'] as String? ?? 'Common',
           'psa_grade': (decoded['psa_grade'] as num?)?.toDouble() ?? 8.5,
           'grade_notes': decoded['grade_notes'] as String? ?? 'Graded successfully.',

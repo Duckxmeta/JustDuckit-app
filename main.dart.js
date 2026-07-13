@@ -32899,12 +32899,13 @@ s=2
 return A.z(A.kw(q,q.geT().hA("animals")).iD(a).a.o4(),$async$PG)
 case 2:return A.C(null,r)}})
 return A.D($async$PG,r)},
-aMN(a,b,c,d,e,f){return A.b4s(a,b,c,d,e,f)},
-b4s(a,b,c,d,e,f){var s=0,r=A.E(t.a),q,p,o
-var $async$aMN=A.A(function(g,h){if(g===1)return A.B(h,r)
-for(;;)switch(s){case 0:p=e?"Rare":"Common"
-o=A.ak(["hardiness",80,"egg_production",75,"rarity_tier",p,"psa_grade",e?9.2:8.5,"grade_notes","Graded using default offline matrix logic."],t.N,t.K)
-q=o
+aMN(a,b,c,d,e,f,g){return A.b4s(a,b,c,d,e,f,g)},
+b4s(a,b,c,d,e,f,g){var s=0,r=A.E(t.a),q,p,o,n
+var $async$aMN=A.A(function(h,i){if(h===1)return A.B(i,r)
+for(;;)switch(s){case 0:p=e?95:75
+o=f?"Rare":"Common"
+n=A.ak(["hardiness",80,"egg_production",p,"rarity_tier",o,"psa_grade",f?9.2:8.5,"grade_notes","Graded using default offline matrix logic."],t.N,t.K)
+q=n
 s=1
 break
 case 1:return A.C(q,r)}})
@@ -103123,83 +103124,84 @@ l=A.hn(B.bz)
 k=A.b([],t.wi)
 j=$.ag
 s.hf(new A.Eo(new A.auG(this),r,!1,0.5625,i,i,i,i,i,h.ry.e,!0,!0,i,i,i,!1,i,"Close Bottom Sheet",new A.ca(B.af,q),"Scrim",i,i,i,p,A.aG(t.f9),new A.b5(i,t.Ts),new A.b5(i,t.A),new A.mL(),i,0,new A.aR(new A.aa(o,n),m),l,k,i,B.e0,new A.ca(i,q),new A.aR(new A.aa(j,n),m),new A.aR(new A.aa(j,n),m),t.Fu))},
-rO(){var s=0,r=A.E(t.H),q,p=2,o=[],n=[],m=this,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,b0,b1,b2,b3,b4,b5,b6,b7,b8
-var $async$rO=A.A(function(b9,c0){if(b9===1){o.push(c0)
+rO(){var s=0,r=A.E(t.H),q,p=2,o=[],n=[],m=this,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,b0,b1,b2,b3,b4,b5,b6,b7,b8,b9
+var $async$rO=A.A(function(c0,c1){if(c0===1){o.push(c1)
 s=p}for(;;)switch(s){case 0:if(!m.d.gM().qP()){s=1
-break}a0=$.aW
-a1=(a0==null?$.aW=$.cr():a0).ct("[DEFAULT]")
-a0=$.d4()
-A.bp(a1,a0,!0)
-l=A.mo(new A.c7(a1)).gjZ()
+break}a1=$.aW
+a2=(a1==null?$.aW=$.cr():a1).ct("[DEFAULT]")
+a1=$.d4()
+A.bp(a2,a1,!0)
+l=A.mo(new A.c7(a2)).gjZ()
 if(l==null){m.c.a7(t.J).f.fa(B.Zd)
 s=1
 break}m.N(new A.auz(m))
 p=4
-a2=$.aW
-a1=(a2==null?$.aW=$.cr():a2).ct("[DEFAULT]")
-A.bp(a1,a0,!0)
-a2=A.jX(new A.c7(a1))
-k=A.kw(a2,a2.geT().hA("animals")).Md()
+a3=$.aW
+a2=(a3==null?$.aW=$.cr():a3).ct("[DEFAULT]")
+A.bp(a2,a1,!0)
+a3=A.jX(new A.c7(a2))
+k=A.kw(a3,a3.geT().hA("animals")).Md()
 j=B.b.gak(k.a.b.a)
 i=null
 s=m.at!=null?7:8
 break
-case 7:a2=$.aW
-a1=(a2==null?$.aW=$.cr():a2).ct("[DEFAULT]")
-A.bp(a1,a0,!0)
-a0=A.D_(new A.c7(a1),null).Op()
-a2=a0.a
-h=A.tD(a0.b,a2.b.oQ(a2.a.Lg("users/"+l.a.c.a.a+"/birds/"+A.j(j)+".jpg")))
-a2=h
-a0=m.at
-a0.toString
-a3=a2.b
-a0=a2.a.O9(a0,new A.Gz(null,null,null,null,"image/jpeg",null))
-A.bp(a0,$.aLx(),!0)
-g=new A.WI(a0,a3)
+case 7:a3=$.aW
+a2=(a3==null?$.aW=$.cr():a3).ct("[DEFAULT]")
+A.bp(a2,a1,!0)
+a1=A.D_(new A.c7(a2),null).Op()
+a3=a1.a
+h=A.tD(a1.b,a3.b.oQ(a3.a.Lg("users/"+l.a.c.a.a+"/birds/"+A.j(j)+".jpg")))
+a3=h
+a1=m.at
+a1.toString
+a4=a3.b
+a1=a3.a.O9(a1,new A.Gz(null,null,null,null,"image/jpeg",null))
+A.bp(a1,$.aLx(),!0)
+g=new A.WI(a1,a4)
 s=9
 return A.z(g.aCy(B.K_),$async$rO)
 case 9:i="gs://"+h.a.b.b+"/"+h.a.a.a
-case 8:a0=m.Q
-f=B.b.n(a0,"Crested")
-e=B.b.n(a0,"Show Quality")
-a2=m.w
-a3=a2==="Cross-Breed / Barnyard Mix"?B.c.eB(m.f.a.a):""
+case 8:a1=m.Q
+f=B.b.n(a1,"Crested")
+e=B.b.n(a1,"Show Quality")
+d=B.b.n(a1,"High Production")
+a3=m.w
+a4=a3==="Cross-Breed / Barnyard Mix"?B.c.eB(m.f.a.a):""
 s=10
-return A.z(A.aMN(m.z,a2,a3,f,e,m.y),$async$rO)
-case 10:d=c0
-a3=B.c.eB(m.e.a.a)
-a2=m.w
-a4=m.r
-a5=m.z
-a6=m.x
-a7=m.y
-a8=i
-a9=l.a
+return A.z(A.aMN(m.z,a3,a4,f,d,e,m.y),$async$rO)
+case 10:c=c1
+a4=B.c.eB(m.e.a.a)
+a3=m.w
+a5=m.r
+a6=m.z
+a7=m.x
+a8=m.y
+a9=i
 b0=l.a
-b1=B.c.km(B.f.k(B.f.bh(Date.now(),1000)),3,"0")
-b2=A.fb(J.d9(d,"psa_grade"))
-a0=a0.length===0?B.Qo:A.f2(a0,!0,t.N)
-b3=i!=null?"Holo":"Standard"
-b4=A.cM(J.d9(d,"hardiness"))
-b5=A.cM(J.d9(d,"egg_production"))
-b6=A.a6(J.d9(d,"rarity_tier"))
-c=A.aLV(a5,a2,b3,a4,null,b5,b2,a0,A.a6(J.d9(d,"grade_notes")),b4,j,a3,a7,b0.c.a.a,a8,b6,"Batch #"+b1,a6,null,a9.c.a.a)
+b1=l.a
+b2=B.c.km(B.f.k(B.f.bh(Date.now(),1000)),3,"0")
+b3=A.fb(J.d9(c,"psa_grade"))
+a1=a1.length===0?B.Qo:A.f2(a1,!0,t.N)
+b4=i!=null?"Holo":"Standard"
+b5=A.cM(J.d9(c,"hardiness"))
+b6=A.cM(J.d9(c,"egg_production"))
+b7=A.a6(J.d9(c,"rarity_tier"))
+b=A.aLV(a6,a3,b4,a5,null,b6,b3,a1,A.a6(J.d9(c,"grade_notes")),b5,j,a4,a8,b1.c.a.a,a9,b7,"Batch #"+b2,a7,null,b0.c.a.a)
 s=11
-return A.z(k.Gf(c.a3N()),$async$rO)
+return A.z(k.Gf(b.a3N()),$async$rO)
 case 11:if(m.c!=null){m.N(new A.auA(m))
-m.c.a7(t.J).f.fa(A.fZ(null,null,null,B.u,null,B.z,null,A.af("Added "+c.b+" to your collection!",null,null,null,null,null,null,null),null,B.aM,null,null,null,null,null,null,null,null,null,null))
-a0=m.c
-a0.toString
-A.cR(a0,!1).dK()}n.push(6)
+m.c.a7(t.J).f.fa(A.fZ(null,null,null,B.u,null,B.z,null,A.af("Added "+b.b+" to your collection!",null,null,null,null,null,null,null),null,B.aM,null,null,null,null,null,null,null,null,null,null))
+a1=m.c
+a1.toString
+A.cR(a1,!1).dK()}n.push(6)
 s=5
 break
 case 4:p=3
-b8=o.pop()
-b=A.a1(b8)
-if(m.c!=null){a=B.c.n(J.di(b).toLowerCase(),"timeout")
-a0=m.c.a7(t.J).f
-a0.fa(A.fZ(null,null,null,B.c4,null,B.z,null,A.af(a?"Upload failed. Please check connection.":"Error saving card: "+A.j(b),null,null,null,null,null,null,null),null,B.aM,null,null,null,null,null,null,null,null,null,null))}n.push(6)
+b9=o.pop()
+a=A.a1(b9)
+if(m.c!=null){a0=B.c.n(J.di(a).toLowerCase(),"timeout")
+a1=m.c.a7(t.J).f
+a1.fa(A.fZ(null,null,null,B.c4,null,B.z,null,A.af(a0?"Upload failed. Please check connection.":"Error saving card: "+A.j(a),null,null,null,null,null,null,null),null,B.aM,null,null,null,null,null,null,null,null,null,null))}n.push(6)
 s=5
 break
 case 3:n=[2]

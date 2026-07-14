@@ -101,7 +101,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     final avgGrade = totalBirds > 0
                         ? birdsList.map((b) => b.flockGrade).reduce((a, b) => a + b) / totalBirds
                         : 0.0;
-                    final estimatedValue = totalBirds * avgGrade * 25.0;
+                    final estimatedValue = birdsList.fold<double>(
+                      0.0,
+                      (accumulated, b) => accumulated + GradingEngine.calculateValue(b.rarityTier, b.flockGrade),
+                    );
 
                     // Apply filters for inventory view
                     List<Bird> filteredBirds = List.from(birdsList);

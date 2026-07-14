@@ -184,4 +184,26 @@ Return a JSON map containing EXACTLY the following keys:
       return 'Good';
     }
   }
+
+  /// Calculates realistic collectible pricing value based on rarity tier and PSA grade.
+  static double calculateValue(String? rarityTier, double psaGrade) {
+    double baseValue;
+    switch (rarityTier) {
+      case 'Legendary':
+      case 'Epic':
+        baseValue = 50.0;
+        break;
+      case 'Rare':
+        baseValue = 30.0;
+        break;
+      case 'Uncommon':
+        baseValue = 20.0;
+        break;
+      case 'Common':
+      default:
+        baseValue = 15.0;
+        break;
+    }
+    return baseValue * (psaGrade / 10.0);
+  }
 }

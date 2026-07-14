@@ -8,7 +8,7 @@ void main() async {
   try {
     await Supabase.initialize(
       url: 'https://invypwkwjqpyukpguhdn.supabase.co',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imludnlwd2t3anFweXVrcGd1aGRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwNTkyNjMsImV4cCI6MjA5OTYzNTI2M30.F0f9HogWovavpd_Kn197uVlnxdI_ffa3W_ztmeS7pSk',
     );
   } catch (e) {
     debugPrint("Supabase initialization info/error: $e");

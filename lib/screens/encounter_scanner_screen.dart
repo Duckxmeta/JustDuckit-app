@@ -2,9 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/bird.dart';
 import '../services/grading_engine.dart';
 import '../services/ai_appraiser_service.dart';
@@ -100,7 +98,7 @@ class _EncounterScannerScreenState extends State<EncounterScannerScreen> {
         ];
       }
 
-      final user = FirebaseAuth.instance.currentUser;
+      final user = Supabase.instance.client.auth.currentUser;
       if (user == null) {
         throw Exception('You must be logged in to register an encounter.');
       }
@@ -129,20 +127,18 @@ class _EncounterScannerScreenState extends State<EncounterScannerScreen> {
         originType: 'Encounter',
       );
 
-      final String birdId = FirebaseFirestore.instance.collection('animals').doc().id;
+      final String birdId = 'encounter_${DateTime.now().microsecondsSinceEpoch}';
       String? photoUrl;
 
-      // 3. Upload raw capture to Firebase Storage under encounter-photos/
+      // 3. Upload raw capture to Supabase Storage under encounter-photos/
       if (imageFile != null) {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('encounter-photos/${user.uid}/$birdId.jpg');
-        final uploadTask = storageRef.putData(
-          Uint8List.fromList(imageBytes),
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
-        await uploadTask.timeout(const Duration(seconds: 15));
-        photoUrl = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
+        final String path = 'users/${user.id}/$birdId.jpg';
+        await Supabase.instance.client.storage
+            .from('encounter-photos')
+            .uploadBinary(path, Uint8List.fromList(imageBytes));
+        photoUrl = Supabase.instance.client.storage
+            .from('encounter-photos')
+            .getPublicUrl(path);
       }
 
       // 4. Instantiate Bird model and push to Firestore
@@ -155,8 +151,8 @@ class _EncounterScannerScreenState extends State<EncounterScannerScreen> {
         sex: 'Unknown',
         originType: 'Encounter',
         photoUrl: photoUrl,
-        uid: user.uid,
-        ownerId: user.uid,
+        uid: user.id,
+        ownerId: user.id,
         serialNumber: 'ENC #${(DateTime.now().millisecondsSinceEpoch % 1000).toString().padLeft(3, '0')}',
         flockGrade: (grading['psa_grade'] as num?)?.toDouble() ?? 8.5,
         geneticTraits: notableTraits.isEmpty ? const ['Wild Encounter'] : notableTraits,
@@ -170,13 +166,13 @@ class _EncounterScannerScreenState extends State<EncounterScannerScreen> {
         discoveryType: 'Encounter', // Forced metadata property
       );
 
-      final docData = newBird.toFirestore();
+      final docData = newBird.toMap();
       if (position != null) {
         docData['latitude'] = position.latitude;
         docData['longitude'] = position.longitude;
       }
 
-      await FirebaseFirestore.instance.collection('animals').doc(birdId).set(docData);
+      await Supabase.instance.client.from('animals').insert(docData);
 
       if (mounted) {
         scaffoldMessenger.showSnackBar(

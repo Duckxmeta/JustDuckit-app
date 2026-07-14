@@ -1,8 +1,7 @@
 // lib/screens/home_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/bird.dart';
 import '../services/grading_engine.dart';
 import 'new_incubation_screen.dart';
@@ -69,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
@@ -77,11 +76,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
           child: _currentIndex == 0
-              ? StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('animals')
-                      .where('owner_id', isEqualTo: user?.uid ?? 'anonymous')
-                      .snapshots(),
+              ? StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: Supabase.instance.client
+                      .from('animals')
+                      .stream(primaryKey: ['id'])
+                      .eq('owner_id', user?.id ?? 'anonymous'),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return const SafeArea(
@@ -94,8 +93,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
 
-                    final docs = snapshot.data?.docs ?? [];
-                    List<Bird> birdsList = docs.map((doc) => Bird.fromFirestore(doc)).toList();
+                    final rows = snapshot.data ?? [];
+                    List<Bird> birdsList = rows.map((row) => Bird.fromMap(row)).toList();
 
                     // Calculate Portfolio Metrics
                     final totalBirds = birdsList.length;
@@ -206,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             onPressed: () async {
                                               final scaffoldMessenger = ScaffoldMessenger.of(context);
                                               try {
-                                                await FirebaseAuth.instance.signOut();
+                                                await Supabase.instance.client.auth.signOut();
                                                 scaffoldMessenger.showSnackBar(
                                                   const SnackBar(content: Text('Successfully signed out.'), backgroundColor: Colors.teal),
                                                 );

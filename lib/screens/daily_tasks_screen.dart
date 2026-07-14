@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/bird.dart';
 import '../models/incubation_batch.dart';
 import '../services/task_engine.dart';
@@ -18,7 +17,7 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -26,11 +25,11 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('incubation_batches')
-            .where('uid', isEqualTo: user?.uid ?? 'anonymous')
-            .snapshots(),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: Supabase.instance.client
+            .from('incubation_batches')
+            .stream(primaryKey: ['id'])
+            .eq('uid', user?.id ?? 'anonymous'),
         builder: (context, batchesSnapshot) {
           if (batchesSnapshot.hasError) {
             return Center(child: Text('Error loading batches: ${batchesSnapshot.error}'));
@@ -39,15 +38,16 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final batches = batchesSnapshot.data!.docs
-              .map((doc) => IncubationBatch.fromFirestore(doc))
+          final batchesRows = batchesSnapshot.data ?? [];
+          final batches = batchesRows
+              .map((row) => IncubationBatch.fromMap(row))
               .toList();
 
-          return StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('animals')
-                .where('uid', isEqualTo: user?.uid ?? 'anonymous')
-                .snapshots(),
+          return StreamBuilder<List<Map<String, dynamic>>>(
+            stream: Supabase.instance.client
+                .from('animals')
+                .stream(primaryKey: ['id'])
+                .eq('uid', user?.id ?? 'anonymous'),
             builder: (context, birdsSnapshot) {
               if (birdsSnapshot.hasError) {
                 return Center(child: Text('Error loading birds: ${birdsSnapshot.error}'));
@@ -56,8 +56,9 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final birds = birdsSnapshot.data!.docs
-                  .map((doc) => Bird.fromFirestore(doc))
+              final birdsRows = birdsSnapshot.data ?? [];
+              final birds = birdsRows
+                  .map((row) => Bird.fromMap(row))
                   .toList();
 
               // Generate tasks based on engine rules

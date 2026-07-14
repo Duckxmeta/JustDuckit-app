@@ -7,7 +7,7 @@ import '../services/card_canvas_service.dart';
 import '../utils/trait_styles.dart';
 import 'lineage_tree_screen.dart';
 import '../widgets/storage_image.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/database_service.dart';
 
 class AnimalProfileScreen extends StatefulWidget {
@@ -54,7 +54,7 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         actions: [
-          if (animal.ownerId == FirebaseAuth.instance.currentUser?.uid)
+          if (animal.ownerId == Supabase.instance.client.auth.currentUser?.id)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: 'Delete Card',

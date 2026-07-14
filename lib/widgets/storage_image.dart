@@ -2,7 +2,7 @@
 
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class StorageImage extends StatelessWidget {
   final String photoUrl;
@@ -78,31 +78,25 @@ class StorageImage extends StatelessWidget {
   Future<Uint8List?> _downloadBytes() async {
     try {
       String? extractedPath;
+      String bucket = 'animals';
+
       if (photoUrl.startsWith('gs://')) {
         final uriStr = photoUrl.substring(5);
         final slashIndex = uriStr.indexOf('/');
         if (slashIndex != -1) {
+          bucket = uriStr.substring(0, slashIndex);
           extractedPath = uriStr.substring(slashIndex + 1);
         }
-      } else if (photoUrl.contains('&token=') && photoUrl.contains('/o/')) {
-        final oIndex = photoUrl.indexOf('/o/');
-        if (oIndex != -1) {
-          final start = oIndex + 3;
-          final qIndex = photoUrl.indexOf('?', start);
-          final encodedPath = qIndex != -1 ? photoUrl.substring(start, qIndex) : photoUrl.substring(start);
-          extractedPath = Uri.decodeComponent(encodedPath);
-        }
+      } else {
+        extractedPath = photoUrl;
       }
 
-      if (extractedPath != null) {
-        return await FirebaseStorage.instance
-            .ref()
-            .child(extractedPath)
-            .getData(10 * 1024 * 1024);
+      if (extractedPath != null && extractedPath.isNotEmpty) {
+        return await Supabase.instance.client.storage
+            .from(bucket)
+            .download(extractedPath);
       }
-
-      final ref = FirebaseStorage.instance.refFromURL(photoUrl);
-      return await ref.getData(10 * 1024 * 1024); // 10MB limit
+      return null;
     } catch (e) {
       debugPrint('Error downloading storage image bytes: $e');
       return null;

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/bird.dart';
 import 'add_bird_screen.dart';
 import 'lineage_tree_screen.dart';
@@ -47,7 +46,7 @@ class _FlockDirectoryScreenState extends State<FlockDirectoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -63,11 +62,11 @@ class _FlockDirectoryScreenState extends State<FlockDirectoryScreen> {
             ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('animals')
-            .where('uid', isEqualTo: user?.uid ?? 'anonymous')
-            .snapshots(),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: Supabase.instance.client
+            .from('animals')
+            .stream(primaryKey: ['id'])
+            .eq('uid', user?.id ?? 'anonymous'),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error loading flock data: ${snapshot.error}'));
@@ -76,7 +75,8 @@ class _FlockDirectoryScreenState extends State<FlockDirectoryScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final allBirds = snapshot.data!.docs.map((doc) => Bird.fromFirestore(doc)).toList();
+          final rows = snapshot.data ?? [];
+          final allBirds = rows.map((row) => Bird.fromMap(row)).toList();
 
           if (allBirds.isEmpty) {
             return Center(

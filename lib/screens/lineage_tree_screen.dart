@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/bird.dart';
 
 class LineageTreeScreen extends StatefulWidget {
@@ -90,31 +89,30 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
               onPressed: () async {
                 if (!formKey.currentState!.validate()) return;
 
-                final user = FirebaseAuth.instance.currentUser;
-                final parentRef = FirebaseFirestore.instance.collection('animals').doc();
+                final user = Supabase.instance.client.auth.currentUser;
+                final String parentId = 'bird_${DateTime.now().microsecondsSinceEpoch}';
                 
                 final newParent = Bird(
-                  id: parentRef.id,
+                  id: parentId,
                   name: nameController.text.trim(),
                   breed: breedController.text.trim(),
                   ageOrHatchDate: DateTime.now().subtract(const Duration(days: 365)),
                   sex: isSire ? 'Male' : 'Female',
                   originType: 'Hatched',
-                  uid: user?.uid ?? 'anonymous',
-                  ownerId: user?.uid ?? 'anonymous',
+                  uid: user?.id ?? 'anonymous',
+                  ownerId: user?.id ?? 'anonymous',
                 );
 
                 try {
                   // Create parent document
-                  await parentRef.set(newParent.toFirestore());
+                  await Supabase.instance.client.from('animals').insert(newParent.toMap());
 
                   // Update child document link
-                  await FirebaseFirestore.instance
-                      .collection('animals')
-                      .doc(childBird.id)
+                  await Supabase.instance.client
+                      .from('animals')
                       .update({
-                    isSire ? 'sire_id' : 'dam_id': parentRef.id,
-                  });
+                    isSire ? 'sire_id' : 'dam_id': parentId,
+                  }).eq('id', childBird.id);
 
                   if (context.mounted) {
                     Navigator.of(context).pop();
@@ -169,11 +167,11 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
               )
             : null,
       ),
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('animals')
-            .doc(_currentBirdId)
-            .snapshots(),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: Supabase.instance.client
+            .from('animals')
+            .stream(primaryKey: ['id'])
+            .eq('id', _currentBirdId),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong'));
@@ -181,11 +179,12 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (!snapshot.hasData || !snapshot.data!.exists) {
+          final rows = snapshot.data ?? [];
+          if (rows.isEmpty) {
             return const Center(child: Text('Bird not found'));
           }
 
-          final rootBird = Bird.fromFirestore(snapshot.data!);
+          final rootBird = Bird.fromMap(rows.first);
 
           return Container(
             color: Colors.grey.shade50,
@@ -344,11 +343,11 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
       );
     }
 
-    return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('animals')
-          .doc(parentId)
-          .snapshots(),
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: Supabase.instance.client
+          .from('animals')
+          .stream(primaryKey: ['id'])
+          .eq('id', parentId),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Center(child: Text('Error'));
@@ -356,11 +355,12 @@ class _LineageTreeScreenState extends State<LineageTreeScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (!snapshot.hasData || !snapshot.data!.exists) {
+        final rows = snapshot.data ?? [];
+        if (rows.isEmpty) {
           return const Center(child: Text('Not found'));
         }
 
-        final parentBird = Bird.fromFirestore(snapshot.data!);
+        final parentBird = Bird.fromMap(rows.first);
 
         return GestureDetector(
           onTap: () => _navigateToBird(parentBird.id),

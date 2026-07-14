@@ -1,7 +1,7 @@
 // lib/screens/global_registry_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/bird.dart';
 import '../services/grading_engine.dart';
 import '../widgets/storage_image.dart';
@@ -151,10 +151,10 @@ class _GlobalRegistryScreenState extends State<GlobalRegistryScreen> {
 
             // Registry Stream grid
             Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('animals')
-                    .snapshots(),
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: Supabase.instance.client
+                    .from('animals')
+                    .stream(primaryKey: ['id']),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(
@@ -171,8 +171,9 @@ class _GlobalRegistryScreenState extends State<GlobalRegistryScreen> {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  final allAnimals = snapshot.data!.docs
-                      .map((doc) => Bird.fromFirestore(doc))
+                  final rows = snapshot.data ?? [];
+                  final allAnimals = rows
+                      .map((row) => Bird.fromMap(row))
                       .toList();
 
                   // Client side filter matching search queries

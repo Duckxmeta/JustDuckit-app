@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class IncubationBatch {
   final String id;
   final String batchName;
@@ -19,18 +17,18 @@ class IncubationBatch {
     required this.uid,
   });
 
-  factory IncubationBatch.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
-    
+  factory IncubationBatch.fromMap(Map<String, dynamic> data) {
     DateTime parseDateTime(dynamic value) {
-      if (value is Timestamp) {
-        return value.toDate();
+      if (value != null) {
+        try {
+          return DateTime.parse(value as String);
+        } catch (_) {}
       }
       return DateTime.now();
     }
 
     return IncubationBatch(
-      id: doc.id,
+      id: data['id']?.toString() ?? '',
       batchName: data['batch_name'] as String? ?? '',
       breedTemplateId: data['breed_template_id'] as String? ?? '',
       startDate: parseDateTime(data['start_date']),
@@ -40,13 +38,14 @@ class IncubationBatch {
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'batch_name': batchName,
       'breed_template_id': breedTemplateId,
-      'start_date': Timestamp.fromDate(startDate),
-      'projected_hatch_date': Timestamp.fromDate(projectedHatchDate),
-      'lockdown_date': Timestamp.fromDate(lockdownDate),
+      'start_date': startDate.toIso8601String(),
+      'projected_hatch_date': projectedHatchDate.toIso8601String(),
+      'lockdown_date': lockdownDate.toIso8601String(),
       'uid': uid,
     };
   }

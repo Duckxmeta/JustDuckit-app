@@ -1,9 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/bird.dart';
 import '../utils/trait_styles.dart';
 import '../services/ai_appraiser_service.dart';
@@ -252,7 +250,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
       return;
     }
 
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -268,23 +266,18 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
     });
 
     try {
-      final birdDocRef = FirebaseFirestore.instance.collection('animals').doc();
-      final birdId = birdDocRef.id;
+      final String birdId = 'bird_${DateTime.now().microsecondsSinceEpoch}';
       String? photoUrl;
 
       // Upload image if selected
       if (_imageBytes != null) {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('users/${user.uid}/birds/$birdId.jpg');
-        
-        final uploadTask = storageRef.putData(
-          _imageBytes!,
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
-        
-        final snapshot = await uploadTask.timeout(const Duration(seconds: 15));
-        photoUrl = 'gs://${storageRef.bucket}/${storageRef.fullPath}';
+        final String path = 'users/${user.id}/birds/$birdId.jpg';
+        await Supabase.instance.client.storage
+            .from('animals')
+            .uploadBinary(path, _imageBytes!);
+        photoUrl = Supabase.instance.client.storage
+            .from('animals')
+            .getPublicUrl(path);
       }
 
       final isCrested = _selectedTraits.contains('Crested');
@@ -312,8 +305,8 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         sex: _selectedSex,
         originType: _selectedOrigin,
         photoUrl: photoUrl,
-        uid: user.uid,
-        ownerId: user.uid,
+        uid: user.id,
+        ownerId: user.id,
         serialNumber: 'Batch #${(DateTime.now().millisecondsSinceEpoch % 1000).toString().padLeft(3, '0')}',
         flockGrade: (aiMetrics['psa_grade'] as num).toDouble(),
         geneticTraits: _selectedTraits.isEmpty ? const ['Flock Pioneer'] : List<String>.from(_selectedTraits),
@@ -324,7 +317,7 @@ class _AddBirdScreenState extends State<AddBirdScreen> {
         gradeNotes: aiMetrics['grade_notes'] as String?,
       );
 
-      await birdDocRef.set(newBird.toFirestore());
+      await Supabase.instance.client.from('animals').insert(newBird.toMap());
 
       if (mounted) {
         setState(() {

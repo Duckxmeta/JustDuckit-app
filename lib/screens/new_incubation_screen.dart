@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/incubation_calculator.dart';
 import '../models/incubation_batch.dart';
 
@@ -59,7 +58,7 @@ class _NewIncubationScreenState extends State<NewIncubationScreen> {
       return;
     }
 
-    final user = FirebaseAuth.instance.currentUser;
+    final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -76,22 +75,20 @@ class _NewIncubationScreenState extends State<NewIncubationScreen> {
 
     try {
       final milestones = IncubationCalculator.calculateMilestones(_setDate, _selectedBreedKey);
-      final template = IncubationCalculator.speciesTemplates[_selectedBreedKey]!;
-
-      // Create a reference with an auto-generated ID
-      final docRef = FirebaseFirestore.instance.collection('incubation_batches').doc();
+      
+      final String batchId = 'batch_${DateTime.now().microsecondsSinceEpoch}';
 
       final newBatch = IncubationBatch(
-        id: docRef.id,
+        id: batchId,
         batchName: _batchNameController.text.trim(),
         breedTemplateId: _selectedBreedKey,
         startDate: _setDate,
         projectedHatchDate: milestones['hatchDate']!,
         lockdownDate: milestones['lockdownDate']!,
-        uid: user.uid,
+        uid: user.id,
       );
 
-      await docRef.set(newBatch.toFirestore());
+      await Supabase.instance.client.from('incubation_batches').insert(newBatch.toMap());
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

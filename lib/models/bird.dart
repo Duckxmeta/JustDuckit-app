@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Bird {
   final String id;
   final String name;
@@ -11,7 +9,7 @@ class Bird {
   final String? sireId;
   final String? damId;
   final String? photoUrl;
-  final String uid; // backward compatibility key for firebase rules
+  final String uid; // backward compatibility key
   final String ownerId; // premium naming convention key
 
   // Collectible Gamified Features
@@ -55,28 +53,39 @@ class Bird {
     this.gradeNotes,
   });
 
-  factory Bird.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
+  factory Bird.fromMap(Map<String, dynamic> data) {
     final String resolvedOwnerId = data['owner_id'] as String? ?? data['uid'] as String? ?? '';
     final String parsedBreed = data['breed'] as String? ?? '';
+    
+    DateTime parsedDate;
+    if (data['age_or_hatch_date'] != null) {
+      try {
+        parsedDate = DateTime.parse(data['age_or_hatch_date'] as String);
+      } catch (_) {
+        parsedDate = DateTime.now();
+      }
+    } else {
+      parsedDate = DateTime.now();
+    }
+
     return Bird(
-      id: doc.id,
+      id: data['id']?.toString() ?? '',
       name: data['name'] as String? ?? '',
       breed: parsedBreed,
-      category: data['category'] as String? ?? (['avian', 'pets', 'livestock', 'aquatic'].contains(parsedBreed.toLowerCase()) ? parsedBreed : 'Avian'),
-      ageOrHatchDate: data['age_or_hatch_date'] is Timestamp
-          ? (data['age_or_hatch_date'] as Timestamp).toDate()
-          : DateTime.now(),
+      category: data['category'] as String? ?? 'Avian',
+      ageOrHatchDate: parsedDate,
       sex: data['sex'] as String? ?? '',
       originType: data['origin_type'] as String? ?? '',
       sireId: data['sire_id'] as String?,
       damId: data['dam_id'] as String?,
-      photoUrl: (doc.data() as Map<String, dynamic>?)?.containsKey('photo_url') == true ? (doc.get('photo_url') as String? ?? '') : '',
+      photoUrl: data['photo_url'] as String? ?? '',
       uid: resolvedOwnerId,
       ownerId: resolvedOwnerId,
       serialNumber: data['serial_number'] as String? ?? 'N/A',
       flockGrade: (data['flock_grade'] as num?)?.toDouble() ?? 8.5,
-      geneticTraits: List<String>.from(data['genetic_traits'] as List<dynamic>? ?? []),
+      geneticTraits: data['genetic_traits'] != null
+          ? List<String>.from(data['genetic_traits'] as List<dynamic>)
+          : const [],
       cardVariant: data['card_variant'] as String? ?? 'Standard',
       level: data['level'] as int? ?? 1,
       xp: data['xp'] as int? ?? 0,
@@ -88,30 +97,31 @@ class Bird {
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+  Map<String, dynamic> toMap() {
     return {
-      'name': name.toString(),
-      'breed': breed.toString(),
-      'category': category.toString(),
-      'age_or_hatch_date': Timestamp.fromDate(ageOrHatchDate),
-      'sex': sex.toString(),
-      'origin_type': originType.toString(),
-      if (sireId != null) 'sire_id': sireId.toString(),
-      if (damId != null) 'dam_id': damId.toString(),
-      if (photoUrl != null) 'photo_url': photoUrl.toString(),
-      'uid': ownerId.toString(),
-      'owner_id': ownerId.toString(),
-      'serial_number': serialNumber.toString(),
+      'id': id,
+      'name': name,
+      'breed': breed,
+      'category': category,
+      'age_or_hatch_date': ageOrHatchDate.toIso8601String(),
+      'sex': sex,
+      'origin_type': originType,
+      'sire_id': sireId,
+      'dam_id': damId,
+      'photo_url': photoUrl,
+      'uid': ownerId,
+      'owner_id': ownerId,
+      'serial_number': serialNumber,
       'flock_grade': flockGrade,
-      'genetic_traits': geneticTraits.map((t) => t.toString()).toList(),
-      'card_variant': cardVariant.toString(),
+      'genetic_traits': geneticTraits,
+      'card_variant': cardVariant,
       'level': level,
       'xp': xp,
-      'discovery_type': discoveryType.toString(),
-      if (hardiness != null) 'hardiness': hardiness,
-      if (eggProduction != null) 'egg_production': eggProduction,
-      if (rarityTier != null) 'rarity_tier': rarityTier.toString(),
-      if (gradeNotes != null) 'grade_notes': gradeNotes.toString(),
+      'discovery_type': discoveryType,
+      'hardiness': hardiness,
+      'egg_production': eggProduction,
+      'rarity_tier': rarityTier,
+      'grade_notes': gradeNotes,
     };
   }
 

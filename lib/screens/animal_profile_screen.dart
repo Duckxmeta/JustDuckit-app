@@ -207,12 +207,59 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
                             ),
                           ),
                           const SizedBox(height: 6),
+                          // XP Progress Bar
+                          Row(
+                            children: [
+                              Text(
+                                'LVL ${animal.level}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.teal,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                    ),
+                                    FractionallySizedBox(
+                                      widthFactor: (animal.xp % 100) / 100.0,
+                                      child: Container(
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          color: Colors.teal,
+                                          borderRadius: BorderRadius.circular(3),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${animal.xp % 100}/100 XP',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: cardAccentColor.withOpacity(0.08),
+                                  color: cardAccentColor.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -228,7 +275,7 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: Colors.teal.withOpacity(0.08),
+                                  color: Colors.teal.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
@@ -238,6 +285,41 @@ class _AnimalProfileScreenState extends State<AnimalProfileScreen> {
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                   ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: animal.discoveryType == 'Resident'
+                                      ? Colors.blue.withValues(alpha: 0.08)
+                                      : Colors.orange.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      animal.discoveryType == 'Resident'
+                                          ? Icons.home_outlined
+                                          : Icons.explore_outlined,
+                                      size: 12,
+                                      color: animal.discoveryType == 'Resident'
+                                          ? Colors.blue
+                                          : Colors.orange,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      animal.discoveryType,
+                                      style: TextStyle(
+                                        color: animal.discoveryType == 'Resident'
+                                            ? Colors.blue
+                                            : Colors.orange,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],

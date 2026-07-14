@@ -19,6 +19,9 @@ class Bird {
   final double flockGrade;
   final List<String> geneticTraits;
   final String cardVariant; // 'Standard', 'Holo', 'Full-Art'
+  final int level;
+  final int xp;
+  final String discoveryType; // 'Resident' or 'Encounter'
 
   // AI Appraisal Metrics
   final int? hardiness;
@@ -43,6 +46,9 @@ class Bird {
     this.flockGrade = 8.5,
     this.geneticTraits = const [],
     this.cardVariant = 'Standard',
+    this.level = 1,
+    this.xp = 0,
+    this.discoveryType = 'Resident',
     this.hardiness,
     this.eggProduction,
     this.rarityTier,
@@ -72,6 +78,9 @@ class Bird {
       flockGrade: (data['flock_grade'] as num?)?.toDouble() ?? 8.5,
       geneticTraits: List<String>.from(data['genetic_traits'] as List<dynamic>? ?? []),
       cardVariant: data['card_variant'] as String? ?? 'Standard',
+      level: data['level'] as int? ?? 1,
+      xp: data['xp'] as int? ?? 0,
+      discoveryType: data['discovery_type'] as String? ?? 'Resident',
       hardiness: data['hardiness'] as int?,
       eggProduction: data['egg_production'] as int?,
       rarityTier: data['rarity_tier'] as String?,
@@ -96,6 +105,9 @@ class Bird {
       'flock_grade': flockGrade,
       'genetic_traits': geneticTraits.map((t) => t.toString()).toList(),
       'card_variant': cardVariant.toString(),
+      'level': level,
+      'xp': xp,
+      'discovery_type': discoveryType.toString(),
       if (hardiness != null) 'hardiness': hardiness,
       if (eggProduction != null) 'egg_production': eggProduction,
       if (rarityTier != null) 'rarity_tier': rarityTier.toString(),
@@ -120,6 +132,9 @@ class Bird {
     double? flockGrade,
     List<String>? geneticTraits,
     String? cardVariant,
+    int? level,
+    int? xp,
+    String? discoveryType,
     int? hardiness,
     int? eggProduction,
     String? rarityTier,
@@ -142,6 +157,9 @@ class Bird {
       flockGrade: flockGrade ?? this.flockGrade,
       geneticTraits: geneticTraits ?? this.geneticTraits,
       cardVariant: cardVariant ?? this.cardVariant,
+      level: level ?? this.level,
+      xp: xp ?? this.xp,
+      discoveryType: discoveryType ?? this.discoveryType,
       hardiness: hardiness ?? this.hardiness,
       eggProduction: eggProduction ?? this.eggProduction,
       rarityTier: rarityTier ?? this.rarityTier,

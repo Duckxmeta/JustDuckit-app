@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../widgets/file_input_selector.dart';
 import 'package:camera/camera.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -72,7 +74,7 @@ class _EncounterScannerScreenState extends State<EncounterScannerScreen> {
     }
   }
 
-  Future<void> _captureEncounter() async {
+  Future<void> _captureEncounter({List<int>? overrideBytes}) async {
     if (_isCapturing) return;
     setState(() {
       _isCapturing = true;
@@ -85,17 +87,19 @@ class _EncounterScannerScreenState extends State<EncounterScannerScreen> {
       // Capture coordinates
       Position? position = await _determinePosition();
 
-      List<int>? imageBytes;
+      List<int>? imageBytes = overrideBytes;
       XFile? imageFile;
 
-      if (_isInitialized && _cameraController != null) {
-        imageFile = await _cameraController!.takePicture();
-        imageBytes = await imageFile.readAsBytes();
-      } else {
-        // Fallback mockup simulated image bytes (a simple 1x1 grey PNG byte matrix)
-        imageBytes = [
-          137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 200, 137, 0, 0, 0, 13, 73, 68, 65, 84, 120, 156, 99, 96, 64, 8, 0, 0, 2, 0, 1, 25, 47, 221, 18, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130
-        ];
+      if (imageBytes == null) {
+        if (_isInitialized && _cameraController != null) {
+          imageFile = await _cameraController!.takePicture();
+          imageBytes = await imageFile.readAsBytes();
+        } else {
+          // Fallback mockup simulated image bytes (a simple 1x1 grey PNG byte matrix)
+          imageBytes = [
+            137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 200, 137, 0, 0, 0, 13, 73, 68, 65, 84, 120, 156, 99, 96, 64, 8, 0, 0, 2, 0, 1, 25, 47, 221, 18, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130
+          ];
+        }
       }
 
       final user = Supabase.instance.client.auth.currentUser;
@@ -131,15 +135,13 @@ class _EncounterScannerScreenState extends State<EncounterScannerScreen> {
       String? photoUrl;
 
       // 3. Upload raw capture to Supabase Storage under encounter-photos/
-      if (imageFile != null) {
-        final String path = 'users/${user.id}/$birdId.jpg';
-        await Supabase.instance.client.storage
-            .from('encounter-photos')
-            .uploadBinary(path, Uint8List.fromList(imageBytes));
-        photoUrl = Supabase.instance.client.storage
-            .from('encounter-photos')
-            .getPublicUrl(path);
-      }
+      final String path = 'users/${user.id}/$birdId.jpg';
+      await Supabase.instance.client.storage
+          .from('encounter-photos')
+          .uploadBinary(path, Uint8List.fromList(imageBytes));
+      photoUrl = Supabase.instance.client.storage
+          .from('encounter-photos')
+          .getPublicUrl(path);
 
       // 4. Instantiate Bird model and push to Firestore
       final newBird = Bird(
@@ -282,21 +284,33 @@ class _EncounterScannerScreenState extends State<EncounterScannerScreen> {
 
               // Floating Capture Trigger Button
               Positioned(
-                bottom: 40,
+                bottom: 20,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: FloatingActionButton.large(
-                    onPressed: _isCapturing ? null : _captureEncounter,
-                    backgroundColor: Colors.teal.shade600,
-                    foregroundColor: Colors.white,
-                    shape: const CircleBorder(
-                      side: BorderSide(color: Colors.white, width: 3),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FloatingActionButton.large(
+                      onPressed: _isCapturing ? null : () => _captureEncounter(),
+                      backgroundColor: Colors.teal.shade600,
+                      foregroundColor: Colors.white,
+                      shape: const CircleBorder(
+                        side: BorderSide(color: Colors.white, width: 3),
+                      ),
+                      child: _isCapturing
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Icon(Icons.center_focus_strong, size: 36),
                     ),
-                    child: _isCapturing
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Icon(Icons.center_focus_strong, size: 36),
-                  ),
+                    if (kIsWeb) ...[
+                      const SizedBox(height: 16),
+                      createWebFileInput(
+                        viewId: 'encounter-file-picker',
+                        onFileSelected: (bytes) {
+                          _captureEncounter(overrideBytes: bytes);
+                        },
+                      ),
+                    ],
+                  ],
                 ),
               ),
 

@@ -31129,7 +31129,7 @@ s=q}for(;;)switch(s){case 0:if($.ab==null)A.azo()
 $.ab.toString
 q=3
 s=6
-return A.n(A.axa("YOUR_SUPABASE_ANON_KEY","https://invypwkwjqpyukpguhdn.supabase.co"),$async$aRJ)
+return A.n(A.axa("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imludnlwd2t3anFweXVrcGd1aGRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwNTkyNjMsImV4cCI6MjA5OTYzNTI2M30.F0f9HogWovavpd_Kn197uVlnxdI_ffa3W_ztmeS7pSk","https://invypwkwjqpyukpguhdn.supabase.co"),$async$aRJ)
 case 6:q=1
 s=5
 break

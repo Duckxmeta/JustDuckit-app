@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   stream: Supabase.instance.client
                       .from('animals')
                       .stream(primaryKey: ['id'])
-                      .eq('owner_id', user?.id ?? 'anonymous'),
+                      .eq('user_id', user?.id ?? 'anonymous'),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       return const SafeArea(

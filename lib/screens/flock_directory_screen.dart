@@ -66,7 +66,7 @@ class _FlockDirectoryScreenState extends State<FlockDirectoryScreen> {
         stream: Supabase.instance.client
             .from('animals')
             .stream(primaryKey: ['id'])
-            .eq('uid', user?.id ?? 'anonymous'),
+            .eq('user_id', user?.id ?? 'anonymous'),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error loading flock data: ${snapshot.error}'));

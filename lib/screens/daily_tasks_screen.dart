@@ -47,7 +47,7 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
             stream: Supabase.instance.client
                 .from('animals')
                 .stream(primaryKey: ['id'])
-                .eq('uid', user?.id ?? 'anonymous'),
+                .eq('user_id', user?.id ?? 'anonymous'),
             builder: (context, birdsSnapshot) {
               if (birdsSnapshot.hasError) {
                 return Center(child: Text('Error loading birds: ${birdsSnapshot.error}'));

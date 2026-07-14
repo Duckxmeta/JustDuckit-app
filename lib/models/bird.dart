@@ -54,7 +54,7 @@ class Bird {
   });
 
   factory Bird.fromMap(Map<String, dynamic> data) {
-    final String resolvedOwnerId = data['owner_id'] as String? ?? data['uid'] as String? ?? '';
+    final String resolvedOwnerId = data['user_id'] as String? ?? data['owner_id'] as String? ?? data['uid'] as String? ?? '';
     final String parsedBreed = data['breed'] as String? ?? '';
     
     DateTime parsedDate;
@@ -111,6 +111,7 @@ class Bird {
       'photo_url': photoUrl,
       'uid': ownerId,
       'owner_id': ownerId,
+      'user_id': ownerId,
       'serial_number': serialNumber,
       'flock_grade': flockGrade,
       'genetic_traits': geneticTraits,

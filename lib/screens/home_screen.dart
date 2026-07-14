@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/bird.dart';
 import '../services/grading_engine.dart';
-import '../utils/trait_styles.dart';
 import 'new_incubation_screen.dart';
 import 'flock_directory_screen.dart';
 import 'daily_tasks_screen.dart';
@@ -73,465 +72,511 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: _currentIndex == 0
-          ? SafeArea(
-              child: CustomScrollView(
-                slivers: [
-            // App bar and search panel (TCG Binder theme)
-            SliverToBoxAdapter(
-              child: Container(
-                color: Colors.white,
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'TCG FARMS',
-                              style: TextStyle(
-                                fontFamily: 'Outfit',
-                                fontWeight: FontWeight.w900,
-                                fontSize: 24,
-                                letterSpacing: 1.2,
-                                color: Colors.teal.shade800,
-                              ),
-                            ),
-                            const Text(
-                              'My Master Binder',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        // Action buttons: Sign Out
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.refresh, color: Colors.teal),
-                              onPressed: () => setState(() {}),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.logout_outlined, color: Colors.teal),
-                              tooltip: 'Sign Out',
-                              onPressed: () async {
-                                final scaffoldMessenger = ScaffoldMessenger.of(context);
-                                try {
-                                  await FirebaseAuth.instance.signOut();
-                                  scaffoldMessenger.showSnackBar(
-                                    const SnackBar(content: Text('Successfully signed out.'), backgroundColor: Colors.teal),
-                                  );
-                                } catch (e) {
-                                  scaffoldMessenger.showSnackBar(
-                                    SnackBar(content: Text('Error signing out: $e'), backgroundColor: Colors.redAccent),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    // Search bar
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              decoration: InputDecoration(
-                                hintText: 'Search binder by name or breed...',
-                                hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
-                                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        PopupMenuButton<String>(
-                          icon: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(12),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: _currentIndex == 0
+              ? StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('animals')
+                      .where('owner_id', isEqualTo: user?.uid ?? 'anonymous')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return const SafeArea(
+                        child: Center(child: Text('Error loading flock inventory.')),
+                      );
+                    }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SafeArea(
+                        child: Center(child: CircularProgressIndicator(color: Colors.teal)),
+                      );
+                    }
+
+                    final docs = snapshot.data?.docs ?? [];
+                    List<Bird> birdsList = docs.map((doc) => Bird.fromFirestore(doc)).toList();
+
+                    // Calculate Portfolio Metrics
+                    final totalBirds = birdsList.length;
+                    final avgGrade = totalBirds > 0
+                        ? birdsList.map((b) => b.flockGrade).reduce((a, b) => a + b) / totalBirds
+                        : 0.0;
+                    final estimatedValue = totalBirds * avgGrade * 25.0;
+
+                    // Apply filters for inventory view
+                    List<Bird> filteredBirds = List.from(birdsList);
+                    if (_searchQuery.isNotEmpty) {
+                      filteredBirds = filteredBirds.where((bird) {
+                        return bird.name.toLowerCase().contains(_searchQuery) ||
+                            bird.breed.toLowerCase().contains(_searchQuery);
+                      }).toList();
+                    }
+
+                    if (_selectedDeck != 'All') {
+                      filteredBirds = filteredBirds.where((bird) {
+                        final breedLower = bird.breed.toLowerCase();
+                        if (_selectedDeck == 'Avian') {
+                          return breedLower == 'avian' || 
+                                 breedLower.contains('duck') || 
+                                 breedLower.contains('chicken') || 
+                                 breedLower.contains('goose') || 
+                                 breedLower.contains('geese') || 
+                                 breedLower.contains('turkey') || 
+                                 breedLower.contains('quail');
+                        } else if (_selectedDeck == 'Pets') {
+                          return breedLower == 'pets' || 
+                                 breedLower == 'pet' || 
+                                 breedLower.contains('dog') || 
+                                 breedLower.contains('cat') || 
+                                 breedLower.contains('rabbit') || 
+                                 breedLower.contains('reptile');
+                        } else if (_selectedDeck == 'Livestock') {
+                          return breedLower == 'livestock' || 
+                                 breedLower.contains('pig') || 
+                                 breedLower.contains('goat') || 
+                                 breedLower.contains('cow') || 
+                                 breedLower.contains('sheep') || 
+                                 breedLower.contains('donkey');
+                        } else if (_selectedDeck == 'Aquatic') {
+                          return breedLower == 'aquatic' || 
+                                 breedLower.contains('fish') || 
+                                 breedLower.contains('shrimp') || 
+                                 breedLower.contains('aquaponic');
+                        }
+                        return true;
+                      }).toList();
+                    }
+
+                    if (_sortBy == 'name') {
+                      filteredBirds.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                    } else if (_sortBy == 'age') {
+                      filteredBirds.sort((a, b) => b.ageOrHatchDate.compareTo(a.ageOrHatchDate));
+                    }
+
+                    return SafeArea(
+                      child: CustomScrollView(
+                        slivers: [
+                          // App bar and search panel
+                          SliverToBoxAdapter(
+                            child: Container(
                               color: Colors.white,
-                            ),
-                            child: const Icon(Icons.sort_outlined, size: 20, color: Colors.teal),
-                          ),
-                          onSelected: (value) {
-                            setState(() {
-                              _sortBy = value;
-                            });
-                          },
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'name',
-                              child: Text('Sort by Name'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'age',
-                              child: Text('Sort by Age'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Horizontal scrolling Custom Decks Tab Selector
-            SliverToBoxAdapter(
-              child: Container(
-                height: 48,
-                margin: const EdgeInsets.only(top: 12.0),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  itemCount: _decks.length,
-                  itemBuilder: (context, index) {
-                    final deckName = _decks[index];
-                    final isSelected = _selectedDeck == deckName;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: ChoiceChip(
-                        label: Text(
-                          deckName == 'All' ? 'Master Binder' : '$deckName Deck',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? Colors.white : Colors.teal.shade900,
-                          ),
-                        ),
-                        selected: isSelected,
-                        selectedColor: Colors.teal.shade800,
-                        backgroundColor: Colors.teal.shade50.withOpacity(0.5),
-                        checkmarkColor: Colors.white,
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() {
-                              _selectedDeck = deckName;
-                            });
-                          }
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-
-            // Dashboard quick tools
-            SliverPadding(
-              padding: const EdgeInsets.all(16.0),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Binder Tools',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildDashboardCard(
-                            context,
-                            title: 'Hatchery',
-                            subtitle: 'Start Incubation',
-                            icon: Icons.egg_outlined,
-                            color: Colors.orange.shade700,
-                            destination: const NewIncubationScreen(),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildDashboardCard(
-                            context,
-                            title: 'Tasks',
-                            subtitle: 'Daily Chores',
-                            icon: Icons.assignment_outlined,
-                            color: Colors.blue.shade700,
-                            destination: const DailyTasksScreen(),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildDashboardCard(
-                            context,
-                            title: 'Flock Directory',
-                            subtitle: 'Grid Directory',
-                            icon: Icons.grid_view_outlined,
-                            color: Colors.teal.shade700,
-                            destination: const FlockDirectoryScreen(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Binder collection listing header
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              sliver: SliverToBoxAdapter(
-                child: Row(
-                  children: [
-                    Text(
-                      _selectedDeck == 'All' ? 'Binder Inventory' : '$_selectedDeck Deck Inventory',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Card Grid list
-            SliverPadding(
-              padding: const EdgeInsets.all(16.0),
-              sliver: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('animals')
-                    .where('owner_id', isEqualTo: user?.uid ?? 'anonymous')
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return const SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(child: Text('Error loading flock inventory.')),
-                    );
-                  }
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(child: CircularProgressIndicator(color: Colors.teal)),
-                    );
-                  }
-
-                  final docs = snapshot.data?.docs ?? [];
-                  if (docs.isEmpty) {
-                    return SliverToBoxAdapter(
-                      child: Card(
-                        elevation: 0,
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 48.0, horizontal: 16.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.style_outlined, size: 64, color: Colors.teal.withOpacity(0.3)),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'No Avian Cards in Binder',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Add some real animals to your collection to start compiling your deck binder!',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.grey, fontSize: 13),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => const AddBirdScreen(),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.add),
-                                label: const Text('Add Animal'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.teal,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  // Map to models
-                  List<Bird> birdsList = docs.map((doc) => Bird.fromFirestore(doc)).toList();
-
-                  // Filter by search query
-                  if (_searchQuery.isNotEmpty) {
-                    birdsList = birdsList.where((bird) {
-                      return bird.name.toLowerCase().contains(_searchQuery) ||
-                          bird.breed.toLowerCase().contains(_searchQuery);
-                    }).toList();
-                  }
-
-                  // Filter by selected Deck category
-                  if (_selectedDeck != 'All') {
-                    birdsList = birdsList.where((bird) {
-                      final breedLower = bird.breed.toLowerCase();
-                      if (_selectedDeck == 'Avian') {
-                        return breedLower == 'avian' || 
-                               breedLower.contains('duck') || 
-                               breedLower.contains('chicken') || 
-                               breedLower.contains('goose') || 
-                               breedLower.contains('geese') || 
-                               breedLower.contains('turkey') || 
-                               breedLower.contains('quail');
-                      } else if (_selectedDeck == 'Pets') {
-                        return breedLower == 'pets' || 
-                               breedLower == 'pet' || 
-                               breedLower.contains('dog') || 
-                               breedLower.contains('cat') || 
-                               breedLower.contains('rabbit') || 
-                               breedLower.contains('reptile');
-                      } else if (_selectedDeck == 'Livestock') {
-                        return breedLower == 'livestock' || 
-                               breedLower.contains('pig') || 
-                               breedLower.contains('goat') || 
-                               breedLower.contains('cow') || 
-                               breedLower.contains('sheep') || 
-                               breedLower.contains('donkey');
-                      } else if (_selectedDeck == 'Aquatic') {
-                        return breedLower == 'aquatic' || 
-                               breedLower.contains('fish') || 
-                               breedLower.contains('shrimp') || 
-                               breedLower.contains('aquaponic');
-                      }
-                      return true;
-                    }).toList();
-                  }
-
-                  // Sort list
-                  if (_sortBy == 'name') {
-                    birdsList.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-                  } else if (_sortBy == 'age') {
-                    birdsList.sort((a, b) => b.ageOrHatchDate.compareTo(a.ageOrHatchDate));
-                  }
-
-                  if (birdsList.isEmpty) {
-                    return SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 32.0),
-                        child: Center(
-                          child: Text(
-                            _selectedDeck == 'All'
-                                ? 'No cards match search criteria.'
-                                : 'No cards found in the $_selectedDeck Deck matching criteria.',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-
-                  return SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 400.0,
-                      mainAxisSpacing: 12.0,
-                      crossAxisSpacing: 12.0,
-                      childAspectRatio: 2.7,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final bird = birdsList[index];
-                        return Dismissible(
-                          key: Key(bird.id),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 20.0),
-                            decoration: BoxDecoration(
-                              color: Colors.redAccent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(Icons.delete, color: Colors.white),
-                          ),
-                          confirmDismiss: (direction) async {
-                            return await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Delete Card'),
-                                content: Text('Are you sure you want to permanently delete ${bird.name} from your binder?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
-                                    child: const Text('Cancel'),
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'TCG FARMS',
+                                            style: TextStyle(
+                                              fontFamily: 'Outfit',
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 24,
+                                              letterSpacing: 1.2,
+                                              color: Colors.teal.shade800,
+                                            ),
+                                          ),
+                                          const Text(
+                                            'My Master Binder',
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.refresh, color: Colors.teal),
+                                            onPressed: () => setState(() {}),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.logout_outlined, color: Colors.teal),
+                                            tooltip: 'Sign Out',
+                                            onPressed: () async {
+                                              final scaffoldMessenger = ScaffoldMessenger.of(context);
+                                              try {
+                                                await FirebaseAuth.instance.signOut();
+                                                scaffoldMessenger.showSnackBar(
+                                                  const SnackBar(content: Text('Successfully signed out.'), backgroundColor: Colors.teal),
+                                                );
+                                              } catch (e) {
+                                                scaffoldMessenger.showSnackBar(
+                                                  SnackBar(content: Text('Error signing out: $e'), backgroundColor: Colors.redAccent),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                  ElevatedButton(
-                                    onPressed: () => Navigator.of(context).pop(true),
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                    child: const Text('Delete'),
+                                  const SizedBox(height: 16),
+                                  // Search bar
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey[100],
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: TextField(
+                                            controller: _searchController,
+                                            decoration: InputDecoration(
+                                              hintText: 'Search binder by name or breed...',
+                                              hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                                              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                                              border: InputBorder.none,
+                                              contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      PopupMenuButton<String>(
+                                        icon: Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: Colors.grey.shade300),
+                                            borderRadius: BorderRadius.circular(12),
+                                            color: Colors.white,
+                                          ),
+                                          child: const Icon(Icons.sort_outlined, size: 20, color: Colors.teal),
+                                        ),
+                                        onSelected: (value) {
+                                          setState(() {
+                                            _sortBy = value;
+                                          });
+                                        },
+                                        itemBuilder: (context) => [
+                                          const PopupMenuItem(
+                                            value: 'name',
+                                            child: Text('Sort by Name'),
+                                          ),
+                                          const PopupMenuItem(
+                                            value: 'age',
+                                            child: Text('Sort by Age'),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            );
-                          },
-                          onDismissed: (direction) async {
-                            try {
-                              await DatabaseService.deleteAnimalCard(bird.id);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Permanently removed ${bird.name} from collection.'),
-                                    backgroundColor: Colors.teal,
+                            ),
+                          ),
+
+                          // Top Portfolio Header Card
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                );
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Failed to delete card: $e'),
-                                    backgroundColor: Colors.redAccent,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.teal.shade900.withOpacity(0.2),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'FLOCK PORTFOLIO VALUE',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '\$${estimatedValue.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        color: Color(0xFFFFD700), // Gold
+                                        fontSize: 28,
+                                        fontFamily: 'Outfit',
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        _buildPortfolioStat('Flock Count', '$totalBirds Birds', Icons.pets_outlined),
+                                        _buildPortfolioStat('Avg PSA Grade', totalBirds > 0 ? avgGrade.toStringAsFixed(1) : '0.0', Icons.star_border),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          // Horizontal scrolling Custom Decks Tab Selector
+                          SliverToBoxAdapter(
+                            child: Container(
+                              height: 48,
+                              margin: const EdgeInsets.only(top: 4.0),
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                itemCount: _decks.length,
+                                itemBuilder: (context, index) {
+                                  final deckName = _decks[index];
+                                  final isSelected = _selectedDeck == deckName;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: ChoiceChip(
+                                      label: Text(
+                                        deckName == 'All' ? 'Master Binder' : '$deckName Deck',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                          color: isSelected ? Colors.white : Colors.teal.shade900,
+                                        ),
+                                      ),
+                                      selected: isSelected,
+                                      selectedColor: Colors.teal.shade800,
+                                      backgroundColor: Colors.teal.shade50.withOpacity(0.5),
+                                      checkmarkColor: Colors.white,
+                                      onSelected: (selected) {
+                                        if (selected) {
+                                          setState(() {
+                                            _selectedDeck = deckName;
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+
+                          // Dashboard quick tools
+                          SliverPadding(
+                            padding: const EdgeInsets.all(16.0),
+                            sliver: SliverToBoxAdapter(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Binder Tools',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.grey[800],
+                                    ),
                                   ),
-                                );
-                              }
-                            }
-                          },
-                          child: _buildAvianTradingCard(context, bird),
-                        );
-                      },
-                      childCount: birdsList.length,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildDashboardCard(
+                                          context,
+                                          title: 'Hatchery',
+                                          subtitle: 'Start Incubation',
+                                          icon: Icons.egg_outlined,
+                                          color: Colors.orange.shade700,
+                                          destination: const NewIncubationScreen(),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildDashboardCard(
+                                          context,
+                                          title: 'Tasks',
+                                          subtitle: 'Daily Chores',
+                                          icon: Icons.assignment_outlined,
+                                          color: Colors.blue.shade700,
+                                          destination: const DailyTasksScreen(),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildDashboardCard(
+                                          context,
+                                          title: 'Flock Directory',
+                                          subtitle: 'Grid Directory',
+                                          icon: Icons.grid_view_outlined,
+                                          color: Colors.teal.shade700,
+                                          destination: const FlockDirectoryScreen(),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Binder collection listing header
+                          SliverPadding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            sliver: SliverToBoxAdapter(
+                              child: Row(
+                                children: [
+                                  Text(
+                                    _selectedDeck == 'All' ? 'Binder Inventory' : '$_selectedDeck Deck Inventory',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.grey[800],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Card Grid list
+                          SliverPadding(
+                            padding: const EdgeInsets.all(16.0),
+                            sliver: filteredBirds.isEmpty
+                                ? SliverToBoxAdapter(
+                                    child: Card(
+                                      elevation: 0,
+                                      color: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        side: BorderSide(color: Colors.grey.shade200),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 48.0, horizontal: 16.0),
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.style_outlined, size: 64, color: Colors.teal.withOpacity(0.3)),
+                                            const SizedBox(height: 16),
+                                            const Text(
+                                              'No Avian Cards in Binder',
+                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            const Text(
+                                              'Add some real animals to your collection to start compiling your deck binder!',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(color: Colors.grey, fontSize: 13),
+                                            ),
+                                            const SizedBox(height: 16),
+                                            ElevatedButton.icon(
+                                              onPressed: () {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) => const AddBirdScreen(),
+                                                  ),
+                                                );
+                                              },
+                                              icon: const Icon(Icons.add),
+                                              label: const Text('Add Animal'),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.teal,
+                                                foregroundColor: Colors.white,
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : SliverGrid(
+                                    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                                      maxCrossAxisExtent: 220.0,
+                                      mainAxisSpacing: 12.0,
+                                      crossAxisSpacing: 12.0,
+                                      childAspectRatio: 0.78,
+                                    ),
+                                    delegate: SliverChildBuilderDelegate(
+                                      (context, index) {
+                                        final bird = filteredBirds[index];
+                                        return Dismissible(
+                                          key: Key(bird.id),
+                                          direction: DismissDirection.endToStart,
+                                          background: Container(
+                                            alignment: Alignment.centerRight,
+                                            padding: const EdgeInsets.only(right: 20.0),
+                                            decoration: BoxDecoration(
+                                              color: Colors.redAccent,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: const Icon(Icons.delete, color: Colors.white),
+                                          ),
+                                          confirmDismiss: (direction) async {
+                                            return await showDialog<bool>(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: const Text('Delete Card'),
+                                                content: Text('Are you sure you want to permanently delete ${bird.name} from your binder?'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.of(context).pop(false),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed: () => Navigator.of(context).pop(true),
+                                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                                    child: const Text('Delete'),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                          onDismissed: (direction) async {
+                                            try {
+                                              await DatabaseService.deleteAnimalCard(bird.id);
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text('Permanently removed ${bird.name} from collection.'),
+                                                    backgroundColor: Colors.teal,
+                                                  ),
+                                                );
+                                              }
+                                            } catch (e) {
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text('Failed to delete card: $e'),
+                                                    backgroundColor: Colors.redAccent,
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                          },
+                                          child: _buildVerticalTradingCard(context, bird),
+                                        );
+                                      },
+                                      childCount: filteredBirds.length,
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                )
+              : const GlobalRegistryScreen(),
         ),
-      )
-      : const GlobalRegistryScreen(),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -611,7 +656,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAvianTradingCard(BuildContext context, Bird bird) {
+  Widget _buildPortfolioStat(String label, String value, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.teal.shade200, size: 16),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: const TextStyle(color: Colors.white60, fontSize: 8, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              value,
+              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerticalTradingCard(BuildContext context, Bird bird) {
     final int hash = bird.breed.hashCode;
     final double hue = (hash.abs() % 360).toDouble();
     final Color tagBgColor = HSLColor.fromAHSL(0.08, hue, 0.70, 0.40).toColor();
@@ -640,48 +707,45 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Row(
-            children: [
-              // Left Image Canvas with dynamic flockGrade badge overlay
-              Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Top Image half
+            Expanded(
+              child: Stack(
                 children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: Colors.teal.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade100),
-                    ),
+                  Positioned.fill(
                     child: bird.photoUrl != null && bird.photoUrl!.isNotEmpty
                         ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(12),
+                              topRight: Radius.circular(12),
+                            ),
                             child: StorageImage(
                               photoUrl: bird.photoUrl!,
                               fit: BoxFit.cover,
                               errorWidget: const Center(
-                                child: Icon(Icons.pets, color: Colors.teal, size: 28),
+                                child: Icon(Icons.pets, color: Colors.teal, size: 36),
                               ),
                             ),
                           )
                         : const Center(
                             child: Text(
                               '🐣',
-                              style: TextStyle(fontSize: 28),
+                              style: TextStyle(fontSize: 48),
                             ),
                           ),
                   ),
+                  // Grade Badge overlay
                   Positioned(
-                    top: 2,
-                    left: 2,
+                    top: 6,
+                    left: 6,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border.all(color: Colors.black87, width: 1.2),
-                        borderRadius: BorderRadius.circular(3),
+                        borderRadius: BorderRadius.circular(4),
                         boxShadow: const [
                           BoxShadow(color: Colors.black12, blurRadius: 1, offset: Offset(1, 1)),
                         ],
@@ -696,122 +760,89 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+                  // Card variant badge overlay (e.g. Holo)
+                  if (bird.cardVariant != 'Standard')
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.deepOrange,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          bird.cardVariant.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 7,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
-              const SizedBox(width: 12),
-              // Center Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      bird.name,
+            ),
+            // Bottom details half
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          bird.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        bird.sex == 'Male'
+                            ? Icons.male
+                            : bird.sex == 'Female'
+                                ? Icons.female
+                                : Icons.question_mark,
+                        size: 12,
+                        color: sexColor,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: tagBgColor,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      bird.geneticTraits.isNotEmpty ? bird.geneticTraits[0] : bird.breed,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
+                        color: tagTextColor,
+                        fontSize: 9,
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    // Breed tag pill & scrolling traits row
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: tagBgColor,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              bird.geneticTraits.isNotEmpty ? bird.geneticTraits[0] : bird.breed,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: tagTextColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          if (bird.geneticTraits.isNotEmpty) ...[
-                            const SizedBox(width: 6),
-                            ...bird.geneticTraits.map((trait) {
-                              final style = TraitStyles.getStyle(trait);
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 4.0),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                  decoration: BoxDecoration(
-                                    color: style.backgroundColor,
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: style.textColor.withOpacity(0.1)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(style.icon, size: 8, color: style.textColor),
-                                      const SizedBox(width: 2),
-                                      Text(
-                                        trait,
-                                        style: TextStyle(
-                                          color: style.textColor,
-                                          fontSize: 8,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    // Key-value metrics
-                    Row(
-                      children: [
-                        Text(
-                          'Age: ${_calculateAgeText(bird.ageOrHatchDate)}',
-                          style: TextStyle(color: Colors.grey[600], fontSize: 11),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
-                        const SizedBox(width: 8),
-                        Icon(
-                          bird.sex == 'Male'
-                              ? Icons.male
-                              : bird.sex == 'Female'
-                                  ? Icons.female
-                                  : Icons.question_mark,
-                          size: 11,
-                          color: sexColor,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          bird.sex,
-                          style: TextStyle(color: sexColor, fontSize: 11, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Age: ${_calculateAgeText(bird.ageOrHatchDate)}',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 10),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              // Right side: modern chevron button
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 14,
-                color: Colors.grey[400],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

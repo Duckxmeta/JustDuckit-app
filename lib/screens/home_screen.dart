@@ -13,6 +13,7 @@ import 'add_bird_screen.dart';
 import '../services/database_service.dart';
 import '../widgets/storage_image.dart';
 import 'global_registry_screen.dart';
+import 'encounter_scanner_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -599,6 +600,18 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Global Registry',
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const EncounterScannerScreen(),
+            ),
+          );
+        },
+        backgroundColor: Colors.teal.shade700,
+        tooltip: 'Scan Encounter',
+        child: const Icon(Icons.explore, color: Colors.white),
       ),
     );
   }

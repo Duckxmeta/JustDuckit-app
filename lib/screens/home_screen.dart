@@ -83,10 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       .eq('user_id', user?.id ?? 'anonymous'),
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return const SafeArea(
-                        child: Center(child: Text('Error loading flock inventory.')),
-                      );
+                      debugPrint("Database fetch error details: ${snapshot.error}");
+                      return const Center(child: Text("Error loading flock inventory."));
                     }
+
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const SafeArea(
                         child: Center(child: CircularProgressIndicator(color: Colors.teal)),
@@ -94,6 +94,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
 
                     final rows = snapshot.data ?? [];
+                    if (rows.isEmpty) {
+                      return const Center(
+                        child: Text("Your Binder is empty! Tap the action button to scan your first animal."),
+                      );
+                    }
+
                     List<Bird> birdsList = rows.map((row) => Bird.fromMap(row)).toList();
 
                     // Calculate Portfolio Metrics

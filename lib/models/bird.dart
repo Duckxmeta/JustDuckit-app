@@ -82,16 +82,16 @@ class Bird {
       uid: resolvedOwnerId,
       ownerId: resolvedOwnerId,
       serialNumber: data['serial_number'] as String? ?? 'N/A',
-      flockGrade: (data['flock_grade'] as num?)?.toDouble() ?? 8.5,
-      geneticTraits: data['genetic_traits'] != null
-          ? List<String>.from(data['genetic_traits'] as List<dynamic>)
+      flockGrade: double.tryParse(data['flock_grade']?.toString() ?? '') ?? 8.5,
+      geneticTraits: data['genetic_traits'] is List
+          ? List<String>.from((data['genetic_traits'] as List).map((e) => e.toString()))
           : const [],
       cardVariant: data['card_variant'] as String? ?? 'Standard',
-      level: data['level'] as int? ?? 1,
-      xp: data['xp'] as int? ?? 0,
+      level: int.tryParse(data['level']?.toString() ?? '') ?? 1,
+      xp: int.tryParse(data['xp']?.toString() ?? '') ?? 0,
       discoveryType: data['discovery_type'] as String? ?? 'Resident',
-      hardiness: data['hardiness'] as int?,
-      eggProduction: data['egg_production'] as int?,
+      hardiness: data['hardiness'] != null ? (int.tryParse(data['hardiness'].toString()) ?? 50) : null,
+      eggProduction: data['egg_production'] != null ? (int.tryParse(data['egg_production'].toString()) ?? 50) : null,
       rarityTier: data['rarity_tier'] as String?,
       gradeNotes: data['grade_notes'] as String?,
     );
